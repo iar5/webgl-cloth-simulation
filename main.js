@@ -7,9 +7,9 @@ loadTextResource("shader/phong.vs", function(text){
 	phong_vs = text;
 	loadTextResource("shader/phong.fs", function(text){
 		phong_fs = text;
-		loadTextResource("shader/cloth.vs", function(text){
+		loadTextResource("shader/basic.vs", function(text){
 			cloth_vs = text
-			loadTextResource("shader/cloth.fs", function(text){
+			loadTextResource("shader/basic.fs", function(text){
 				cloth_fs = text;
 				window.onload = initGL();
 			})
@@ -20,12 +20,12 @@ loadTextResource("shader/phong.vs", function(text){
 
 
 /*
- * Global variables 
+ * Main Application
  */
 var gl;
 var stats;
 var phongProgram;
-var clothProgram;
+var basicProgram;
 
 var	lastTick = 0;
 var mouseDown = false;
@@ -37,45 +37,70 @@ var projectionMatrix = mat4.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
+var cloth, objects;
 var camera = {
 	position: [0.0, -4, -15.0],
 	rotation: 0,
-	angle: 35
+	angle: 35,
+	animated: false
 }
 
-var bounce = .9;    // aufprall 
-var drag = 0.9;     // luftwiderstand
-var gravity = 0.81; // gravität
-var windX = 0.00000002;
-var windZ = 0.0000001;
+var bounce = .9;     // aufprall 
+var drag = 0.9;      // luftwiderstand
+var gravity = 0.981; // grvavitation
+var windX = 0;
+var windZ = 0;
 
-
-/*
- * Main application 
- */
 function initGL () {
-	stats = new Stats();
-	document.body.appendChild(stats.dom);
+		
+	// ----------------------------------- //
+
+	/* IMPROVEMENTS
+	- x, y, z als Array darstellen
+	- p.oldx etc. als seperaten Punkt
+	*/
 
 	gl = canvas.getContext("experimental-webgl");
 	gl.enable(gl.DEPTH_TEST);
-
-	var objects = [
-		new Towel(40, 30, 0.2, {x: -4, y: 0, z: 0}),
-		//new Sphere(2, {x: 1.2, y: 2, z: 0}, 18, 18),
-		new Sphere(1, {x: -2, y: 4, z: 0}, 18, 18),
-		//new Tetraeder({x: 1, y: 2, z: 0}),
-		new Obj("models/human_806polys.json"),
-	];
-	var cloth = new Cloth(objects[0], 0.02, 30)
-
 	initShaders();
-	objects.forEach(o => o.init(gl));
-	loop();
 
-	
+	//let towel = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3);
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2);
+	let	human = new Obj("modelsJson/human_806polys.json");
+	let	susan = new Obj("modelsJson/Susan.json");
+	let	sphere = new Sphere(.6, 18, 18).translate(1.5, 5, -1);
+	let	sphere2 = new Sphere(1, 18, 18).translate(-2, 4, -.2);
+	let	tetraeder = new Tetraeder().translate(1,4,1);
+	cloth = new Cloth(towel, 0.04, 30);
+
+	objects = [towel, human];
+
+	var starter = function(count){
+		var counter = count;
+		return function(){
+			counter--;
+			if(counter == 0) start();
+		}
+	}(objects.length)
+
+	objects.forEach(o => {
+		o.init(gl, starter)
+	});
+
+
+	// ----------------------------------- //
+
+	function start(){
+		let elem = document.getElementById("loadingText");
+		elem.parentNode.removeChild(elem);
+		stats = new Stats();
+		document.body.appendChild(stats.dom);
+		canvas.style.display = "initial";
+		loop();
+	}
+
 	function loop() {
-		//animateCamera();
+		if(camera.animated) animateCamera();
 		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		mat4.perspective(camera.angle, canvas.clientWidth/canvas.clientHeight, .01, 100.0, projectionMatrix); 
@@ -84,21 +109,18 @@ function initGL () {
 		mat4.multiply(modelviewMatrix, rotationMatrix);
 		mat4.rotate(modelviewMatrix, degToRad(camera.rotation), [0, 1, 0]);
 
-		cloth.update(objects);
+		if(cloth) cloth.update(objects);
 		objects.forEach(o => o.draw(gl));
-
 		stats.update();
 		requestAnimationFrame(loop);
 	}
-
-
 
 	function animateCamera(){
 		let timeNow = new Date().getTime();
 		let elapsed = timeNow - lastTick;
 		if(lastTick == 0) {
 			lastTick = timeNow;
-			return
+			return;
 		}
 		camera.rotation += (90 * elapsed) / 3000.0;
 		lastTick = timeNow;
@@ -107,18 +129,18 @@ function initGL () {
 	function initShaders() {
 		phongProgram = createProgram(phong_vs, phong_fs)
 		gl.useProgram(phongProgram);
-		bindAttribute(phongProgram, "vertexPositionAttribute", "vertexPosition")
-		bindAttribute(phongProgram, "vertexColorAttribute", "vertexColor")
-		bindAttribute(phongProgram, "vertexNormalAttribute", "vertexNormal")
+		bindAttribute(phongProgram, "vertexPositionAttribute", "vertexPosition");
+		bindAttribute(phongProgram, "vertexColorAttribute", "vertexColor");
+		bindAttribute(phongProgram, "vertexNormalAttribute", "vertexNormal");
 		phongProgram.projMatrixUniform = gl.getUniformLocation(phongProgram, "projectionMatrix");
 		phongProgram.mvMatrixUniform = gl.getUniformLocation(phongProgram, "mvMatrix");
 
-		clothProgram = createProgram(cloth_vs, cloth_fs)
-		gl.useProgram(clothProgram);
-		bindAttribute(clothProgram, "vertexPositionAttribute", "vertexPosition")
-		bindAttribute(clothProgram, "vertexColorAttribute", "vertexColor")
-		clothProgram.projMatrixUniform = gl.getUniformLocation(clothProgram, "projectionMatrix");
-		clothProgram.mvMatrixUniform = gl.getUniformLocation(clothProgram, "mvMatrix");
+		basicProgram = createProgram(cloth_vs, cloth_fs)
+		gl.useProgram(basicProgram);
+		bindAttribute(basicProgram, "vertexPositionAttribute", "vertexPosition");
+		bindAttribute(basicProgram, "vertexColorAttribute", "vertexColor");
+		basicProgram.projMatrixUniform = gl.getUniformLocation(basicProgram, "projectionMatrix");
+		basicProgram.mvMatrixUniform = gl.getUniformLocation(basicProgram, "mvMatrix");
 	}
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();
