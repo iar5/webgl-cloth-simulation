@@ -1,7 +1,5 @@
 //https://github.com/sessamekesh/IndigoCS-webgl-tutorials/blob/master/05%20-%20Phong%20Lighting%20Intro/shader.fs.glsl
-
 precision mediump float;
-
 varying vec4 fragColor;
 varying vec3 fragNormal;
 

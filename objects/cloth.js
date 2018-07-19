@@ -1,17 +1,20 @@
 class Cloth{
-    constructor(mesh, particleMass, stiffness) {
-        if(!mesh.springs) throw Error("Mesh not suitable for cloth simulation")
+    constructor(particleMass, stiffness) {
         this.particleMass = particleMass;
         this.stiffness = stiffness;
+        this.mesh = null;
+    }
+    applyMesh(mesh){
+        if(!mesh.springs) throw Error("Mesh not suitable for cloth simulation")
         this.mesh = mesh;
     }
-    update() {
+    updateMesh(){
         this._verletIntegration();
         for (let i = 0; i < this.stiffness; i++) {
             this._disctanceConstraint();
         }      
-        this._resolveCollisions();      
-        this._bottomConstraint();
+        this._bottomsCollisions();      
+        this._objectCollisions();
         this.mesh.compileVerticesFromPoints();
     }
     _verletIntegration() {
@@ -39,48 +42,43 @@ class Cloth{
             else if(s.type == 'bend') stregth = 0.5;
             else stregth = 1;
     
-            let dx = s.p1.x - s.p0.x,
-                dy = s.p1.y - s.p0.y,
-                dz = s.p1.z - s.p0.z,
-                distance = Math.sqrt(dx*dx + dy*dy + dz*dz),
-                difference = s.length - distance,
-                percent = difference / distance / 2 * stregth,
-                offsetX = dx * percent,
-                offsetY = dy * percent,
-                offsetZ = dz * percent;
-                 
+            let d = vec3.sub(s.p1, s.p0)
+            let dist = vec3.length(d)
+            let diff = s.length - dist
+            let percent = diff / dist / 2 * stregth
+            let offset = vec3.scale(d, percent)
             if (!s.p0.pinned) {
-                s.p0.x -= offsetX;
-                s.p0.y -= offsetY;
-                s.p0.z -= offsetZ;
+                s.p0.x -= offset.x;
+                s.p0.y -= offset.y;
+                s.p0.z -= offset.z;
             }
             if (!s.p1.pinned) {
-                s.p1.x += offsetX;
-                s.p1.y += offsetY;
-                s.p1.z += offsetZ;
+                s.p1.x += offset.x;
+                s.p1.y += offset.y;
+                s.p1.z += offset.z;
             }
         }
     }
-    _bottomConstraint() {
+    _bottomsCollisions() {
         let friction = 0.5;
         for (let p of this.mesh.points) {
             if (!p.pinned && p.y < 0) {
                 p.y = 0;
                 p.oldy = -p.oldy * bounce;
-                p.oldx = p.x + (p.x - p.oldx) * friction;
-                p.oldz = p.z + (p.z - p.oldz) * friction;
+                p.oldx = p.x + (p.x-p.oldx) * friction;
+                p.oldz = p.z + (p.z-p.oldz) * friction;
             }
         }
     }
-    _resolveCollisions() {
+    _objectCollisions() {
         for(let o of objects) {
-            //if(o == this.mesh) continue; // eigenes mesh
-            if(!o.resolveCollision) continue; // keine Kollisionserkennung möglich
+            if(!o.resolveCollision) continue;
             for (let p of this.mesh.points) {
                 o.resolveCollision(p);      
             }
         }
-    }
+    } 
+
     /*_positionReset() {
         let maxStretch = .5;
         for (let s of this.mesh.springs) {

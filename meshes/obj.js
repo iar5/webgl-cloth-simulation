@@ -1,11 +1,20 @@
+/**
+ * Wichtig für späteres Laden von Kleidungsmodellen in Verbindung mit Cloth:
+ * - .obj bzw .json darf keine Doppelten Vertices haben! 
+ * - Also nicht in der Form faces: [0,1,2], [3,4,5], ..
+ * - Sondern [0,1,2], [0,2,3], .. o.Ä
+ * - Sonst hat jedes Dreieck eigene Punkte die z.B. bei Umpositionierung unabhängig vom Dublikat sind
+ */
+
 class Obj extends Mesh {
-    constructor(src) {
+    constructor(src, color) {
         super(phongProgram, gl.TRIANGLES)
         this.src = src;
+        this.color = color;
     }
     init(gl, callback) {
         loadJSONResource(this.src, (model) => {
-            // http://www.greentoken.de/onlineconv/ 
+            console.log(model)
             if(!model.meshes) throw Error ("JSON Formatierung nicht untersützt") 
 
             this._vertices = []; 
@@ -21,9 +30,14 @@ class Obj extends Mesh {
             }
             this._colors = []
             for(let i=0; i<this._vertices.length/3; i++){
-                this._colors.push(.5, .6, .5, 1)
+                if(this.color == 'red') this._colors.push(1, 0, 0, 1)
+                else if(this.color == 'green') this._colors.push(0, 1, 0, 1)
+                else if(this.color == 'blue') this._colors.push(0, 0, 1, 1)
+                else if(this.color == 'yellow') this._colors.push(1, 1, 0, 1)
+                else if(this.color == 'cyan') this._colors.push(0, 1, 1, 1)
+                else if(this.color == 'magenta') this._colors.push(1, 0, 1, 1)
+                else this._colors.push(.5, .6, .5, 1)
             }
-
             this.generatePointsFromVertices();
 
             this.normals = [];

@@ -1,19 +1,15 @@
 /**
  * springs für cloth Objekte
- * points repräsentieren die _vertices. Werden für interne Berechnungen benutzt. 
- * _vertices für WebGL
- * _indices für WebGL
- * _normals für WebGL
+ * triangles repräsentieren die _indices, werden für Kollision benutzt
+ * points repräsentieren die _vertices, werden für interne Berechnungen benutzt. 
+ * _vertices, _indices, _normals, _colors für WebGL
+ * _positionBuffer, _indicesBuffer, _normalBuffer, _colorBuffer für WebGL
  */
 
 class Mesh{
     constructor(program, drawMode) {
         this.program = program;
         this.drawMode = drawMode;
-
-        this._positionBuffer, this.__indicesBuffer, this._normalBuffer, this._colorBuffer;
-        this._vertices, this._indices, this._normals, this._colors;
-        this.points;
     }
     init(gl, callback){
         this._positionBuffer = gl.createBuffer();
@@ -41,6 +37,7 @@ class Mesh{
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
         }
+
         callback();
     }
     draw(gl){
@@ -50,20 +47,27 @@ class Mesh{
         gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, modelviewMatrix);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer); 
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW); // weil sich Positionen verändern       
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW); // update positions   
         gl.vertexAttribPointer(this.program.vertexPositionAttribute, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
         gl.vertexAttribPointer(this.program.vertexColorAttribute, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         if(this._normals){
+            // gl.enableVertexAttribArray(this.program.vertexNormalAttribute);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
             gl.vertexAttribPointer(this.program.vertexNormalAttribute, this._normalBuffer.itemSize, gl.FLOAT, gl.TRUE, 0, 0);
         }
+        else{
+            // INVALID_OPERATION: drawElements: no buffer is bound to enabled attribute
+            // Weil im Phong Programm gl.enableVertexAttribArray(program.vertexNormalAttribute). Wenn Phong Programm existiert kommt Error auxh nicht und Towel kann auch allein gezeichnet werden
+            // Angedachte Lösung, die nicht klappt:
+            // gl.disableVertexAttribArray(this.program.vertexNormalAttribute);
+        }
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
-		gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
     generatePointsFromVertices() {
         this.points = [];
@@ -76,13 +80,24 @@ class Mesh{
         }
     }
     /**
-     * Wenn Punkte verändert wurden, z.B. nach Verlet 
+     * Wird bei Cloth update nicht beachtet 
      */
-    compileVerticesFromPoints() {
-        this._vertices = [];
-        this.points.forEach( pos => this._vertices.push(pos.x, pos.y, pos.z))
+    pin(... points){
+        points.forEach(i => {
+            if(i >= this.points.length) console.error("mesh.pin(p), p index out of range");
+            else this.points[i].pinned = true
+        })
     }
-    
+    unpin(... points){
+        points.forEach(i => {
+            if(i >= this.points.length) console.error("mesh.unpin(p), p index out of range");
+            else this.points[i].pinned = false
+        })
+    }
+    /**
+     * Transformationen 
+     * TODO Normalen mit rotieren
+     */
     translate(x, y, z){
         // Für Kreis Mittelpunkt
         if(this.midPoint) {
@@ -103,7 +118,6 @@ class Mesh{
         this.compileVerticesFromPoints();
         return this; 
     }
-    // TODO Normalen mit rotieren
     rotateX(degrees){
         let rad = degToRad(degrees);
         this.points.forEach(pos => {
@@ -147,5 +161,13 @@ class Mesh{
             }
         })
         this.compileVerticesFromPoints();
+        return this;
+    }
+    /**
+     * Vertices updaten, wenn Punkte verändert wurden
+     */
+    compileVerticesFromPoints() {
+        this._vertices = [];
+        this.points.forEach( pos => this._vertices.push(pos.x, pos.y, pos.z))
     }
 }

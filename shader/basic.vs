@@ -1,3 +1,5 @@
+precision mediump float;
+
 attribute vec3 vertexPosition;
 attribute vec4 vertexColor;
 uniform mat4 mvMatrix;

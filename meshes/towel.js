@@ -1,18 +1,11 @@
 class Towel extends Mesh{
-    constructor(amountX = 10, amountY = 10, density = 1) {
+    constructor(amountX=10, amountY=10, density=1) {
         super(basicProgram, gl.LINES)
-
         this.amountX = amountX;
         this.amountY = amountY;
         this.density = density;
-
         this._generatePointsSpringsAndTriangles();
         this._generateVerticesIndicesAndColors();
-
-        this.points[0].pinned = true;
-        //this.points[amountX - 1].pinned = true;
-        //this.points[amountX * (amountY-1)].pinned = true;
-        this.points[amountX * amountY -1].pinned = true;
     }
     _generatePointsSpringsAndTriangles() {
         this.points = [];
@@ -84,7 +77,6 @@ class Towel extends Mesh{
     }
     _generateVerticesIndicesAndColors() {
         this.compileVerticesFromPoints();
-
         this._indices = [];
         for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
@@ -103,9 +95,17 @@ class Towel extends Mesh{
             }
         }
         this._colors = [];
-        for(let i=0; i < this._vertices.length/3; i++){
-            this._colors.push(0, 0, 0, 1)
-        }    
+        for(let i=0; i<this._vertices.length/3; i++){
+            this._colors.push(.1, .1, .1, 1)
+        }  
+    }
+    applyCloth(cloth){
+        cloth.applyMesh(this);
+        this.cloth = cloth;
+        return this;
+    }
+    update(){
+        if(this.cloth) this.cloth.updateMesh();
     }
 }
 
