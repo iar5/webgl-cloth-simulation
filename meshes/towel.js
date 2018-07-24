@@ -4,40 +4,20 @@ class Towel extends Mesh{
         this.amountX = amountX;
         this.amountY = amountY;
         this.density = density;
-        this._generatePointsAndTriangles();
         this._generateVerticesIndicesAndColors();
-    }
-    _generatePointsAndTriangles() {
-        this.points = [];
-        for (let y = this.amountY; y>0; y--) {
-            for (let x = 0; x < this.amountX; x++) {
-                this.points.push({
-                    x: x * this.density - this.amountX*this.density/2,
-                    y: y * this.density,
-                    z: 0,
-                });
-            }
-        }
-        this.triangles = [];
-        for (let y = 0; y < this.amountY; y++) {
-            for (let x = 0; x < this.amountX; x++) {
-                if (y + 1 == this.amountY) break;
-                if (x + 1 == this.amountX) continue;
-                this.triangles.push(new Triangle(
-                    this.points[y*this.amountX + x], 
-                    this.points[y*this.amountX + x+1], 
-                    this.points[(y+1)*this.amountX + x]
-                ));
-                this.triangles.push(new Triangle(
-                    this.points[(y+1)*this.amountX + x], 
-                    this.points[y*this.amountX + x+1], 
-                    this.points[(y+1)*this.amountX + x+1]
-                ));
-            }
-        }
+        this._generatePointsAndTriangles();
     }
     _generateVerticesIndicesAndColors() {
-        this.compileVerticesFromPoints();
+        this._vertices = []; 
+        for (let y = this.amountY; y>0; y--) {
+            for (let x = 0; x < this.amountX; x++) {
+                this._vertices.push(
+                    x*this.density - this.amountX*this.density/2,
+                    y*this.density,
+                    0,
+                );
+            }
+        }
         this._indices = [];
         for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
@@ -59,6 +39,26 @@ class Towel extends Mesh{
         for(let i=0; i<this._vertices.length/3; i++){
             this._colors.push(.1, .1, .1, 1)
         }  
+    }
+    _generatePointsAndTriangles(){
+        this.generatePointsFromVertices();
+        this.triangles = [];
+        for (let y = 0; y < this.amountY; y++) {
+            for (let x = 0; x < this.amountX; x++) {
+                if (y + 1 == this.amountY) break;
+                if (x + 1 == this.amountX) continue;
+                this.triangles.push(new Triangle(
+                    this.points[y*this.amountX + x], 
+                    this.points[y*this.amountX + x+1], 
+                    this.points[(y+1)*this.amountX + x]
+                ));
+                this.triangles.push(new Triangle(
+                    this.points[(y+1)*this.amountX + x], 
+                    this.points[y*this.amountX + x+1], 
+                    this.points[(y+1)*this.amountX + x+1]
+                ));
+            }
+        }
     }
     applyCloth(cloth){
         cloth.applyMesh(this);

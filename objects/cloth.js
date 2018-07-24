@@ -29,32 +29,32 @@ class Cloth{
                     if (x+1 < amountX) {
                         let p0 = points[y*amountX + x],
                             p1 = points[y*amountX + x+1];
-                        springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'structural'});
-                    }
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'structural')));
+                        }
                     if (y+1 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+1)*amountX + x];
-                        springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'structural'});
-                    }
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'structural')));
+                        }
                     /* shear springs */
                     if (x+1 < amountX && y+1 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+1)*amountX + x+1],
                             p2 = points[y*amountX + x+1],
                             p3 = points[(y+1)*amountX + x];
-                        springs.push({p0: p0, p1: p1, length: vec3.dist(p0, p1), type: 'shear'});
-                        springs.push({p0: p2, p1: p3, length: vec3.dist(p2, p3), type: 'shear'});
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'shear')));
+                        springs.push(new Spring(p2, p3, vec3.dist(p2, p3, 'shear')));
                     }
                     /* bend springs */
                     if(x+2 < amountX) {
                         let p0 = points[y*amountX + x],
                             p1 = points[y*amountX + x+2];
-                        springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'bend'});
-                    }
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'bend')));
+                        }
                     if(y+2 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+2)*amountX + x];
-                        springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'bend'});
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'bend')));
                     }
                 }
             }
@@ -85,7 +85,7 @@ class Cloth{
     }
     _disctanceConstraint() {
         let stiffnesreached = false;
-        for (var i=0; i<40 && !stiffnesreached; i++) {
+        for (var i=0; i<50 && !stiffnesreached; i++) {
             stiffnesreached = true;
             for (var j=0; j < this.mesh.springs.length; j++) {
                 let s = this.mesh.springs[j];

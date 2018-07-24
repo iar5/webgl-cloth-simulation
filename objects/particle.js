@@ -17,10 +17,12 @@ class Particle extends Point{
             this.oldz = oldz;
             this.mass = mass;
         }
+        this.pinned = false;
     } 
-
-
     pin(){
         this.pinned = true;
+    }
+    unpin(){
+        this.pinned = false;
     }
 }
