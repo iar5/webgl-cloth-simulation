@@ -79,20 +79,13 @@ class Mesh{
             })
         }
     }
-    /**
-     * Wird bei Cloth update nicht beachtet 
-     */
-    pin(... points){
-        points.forEach(i => {
-            if(i >= this.points.length) console.error("mesh.pin(p), p index out of range");
-            else this.points[i].pinned = true
-        })
+    applyCloth(cloth){
+        cloth.applyMesh(this);
+        this.cloth = cloth;
+        return this;
     }
-    unpin(... points){
-        points.forEach(i => {
-            if(i >= this.points.length) console.error("mesh.unpin(p), p index out of range");
-            else this.points[i].pinned = false
-        })
+    update(){
+        if(this.cloth) this.cloth.updateMesh();
     }
     /**
      * Transformationen 

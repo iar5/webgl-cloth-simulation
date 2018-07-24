@@ -60,14 +60,6 @@ class Towel extends Mesh{
             }
         }
     }
-    applyCloth(cloth){
-        cloth.applyMesh(this);
-        this.cloth = cloth;
-        return this;
-    }
-    update(){
-        if(this.cloth) this.cloth.updateMesh();
-    }
 }
 
 

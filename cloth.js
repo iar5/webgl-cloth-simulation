@@ -1,9 +1,9 @@
 class Cloth{
-    constructor(mass, stiffness) {
+    constructor(stiffness, mass) {
         if(stiffness > 1) stiffness = 1;
         else if(stiffness < 0.1) stiffness = .1;
         this.stiffness = stiffness;
-        this.mass = mass;
+        this.mass = mass || 10;
         this.mesh = null;
     }
     applyMesh(mesh){
@@ -19,7 +19,6 @@ class Cloth{
                 let p = points[i];
                 points[i] = new Particle(p, particelMass)
             }
-
             let springs = this.mesh.springs = [];
             let amountY = this.mesh.amountY;
             let amountX = this.mesh.amountX;
@@ -42,22 +41,25 @@ class Cloth{
                             p1 = points[(y+1)*amountX + x+1],
                             p2 = points[y*amountX + x+1],
                             p3 = points[(y+1)*amountX + x];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'shear')));
-                        springs.push(new Spring(p2, p3, vec3.dist(p2, p3, 'shear')));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'shear'));
+                        springs.push(new Spring(p2, p3, vec3.dist(p2, p3), 'shear'));
                     }
                     /* bend springs */
                     if(x+2 < amountX) {
                         let p0 = points[y*amountX + x],
                             p1 = points[y*amountX + x+2];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'bend')));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'bend'));
                         }
                     if(y+2 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+2)*amountX + x];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'bend')));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'bend'));
                     }
                 }
             }
+        }
+        else{
+            throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
         }
     }
     updateMesh(){
@@ -117,7 +119,7 @@ class Cloth{
     _bottomsCollisions() {
         let friction = 0.5;
         for (let p of this.mesh.points) {
-            if (!p.pinned && p.y < 0) {
+            if (p.y < 0) {
                 p.y = 0;
                 p.oldy = -p.oldy * bounce;
                 p.oldx = p.x + (p.x-p.oldx) * friction;

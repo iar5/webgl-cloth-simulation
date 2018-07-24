@@ -67,18 +67,19 @@ function initGL () {
 	let	icosa = new Obj("modelsJson/icosa.json", 'green');
 	let	sphere = new Sphere(.6, 18, 18).translate(1.5, 5, -1);
 	let	dummyObject = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(10, 0.6));
-	let towelFree = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth(10, 0.3));
-	let towel1Pin = new Towel(30, 30, .2).translate(3, 3, 0).applyCloth(new Cloth(10, 0.2));
-	towel1Pin.pin(0);
-	towel.pin(380, 399);
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.5));
+	let towelFree = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth(0.3));
+	let towel1Pin = new Towel(30, 30, .2).translate(3, 3, 0).applyCloth(new Cloth(0.2));
+	towel1Pin.points[0].pin();
+	towel.points[380].pin();
+	towel.points[399].pin();
 
 	var initialisationCallback = () => {
-		if(icosa.points) icosa.translate(1,4,1.5);
-		if(triangle.points) triangle.translate(1,3.5,1)	
+		if(icosa.points) icosa.translate(-1.5, 3.5, 1.5);
+		if(triangle.points) triangle.translate(1.5, 3, 1);	
 	}
 
-	objects = [dummyObject, towel, triangle]
+	objects = [dummyObject, towel, icosa, triangle]
 
 
 	// ----------------- Start and Loop ------------------ //
