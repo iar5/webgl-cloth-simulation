@@ -4,10 +4,10 @@ class Towel extends Mesh{
         this.amountX = amountX;
         this.amountY = amountY;
         this.density = density;
-        this._generatePointsSpringsAndTriangles();
+        this._generatePointsAndTriangles();
         this._generateVerticesIndicesAndColors();
     }
-    _generatePointsSpringsAndTriangles() {
+    _generatePointsAndTriangles() {
         this.points = [];
         for (let y = this.amountY; y>0; y--) {
             for (let x = 0; x < this.amountX; x++) {
@@ -15,46 +15,7 @@ class Towel extends Mesh{
                     x: x * this.density - this.amountX*this.density/2,
                     y: y * this.density,
                     z: 0,
-                    oldx: x * this.density - this.amountX*this.density/2,
-                    oldy: y * this.density,
-                    oldz: 0
                 });
-            }
-        }
-        this.springs = [];
-        for (let y=0; y < this.amountY; y++) {
-            for (let x=0; x < this.amountX; x++) {
-                /* strucutral springs */
-                if (x+1 < this.amountX) {
-                    let p0 = this.points[y*this.amountX + x],
-                        p1 = this.points[y*this.amountX + x+1];
-                    this.springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'structural'});
-                }
-                if (y+1 < this.amountY) {
-                    let p0 = this.points[y*this.amountX + x],
-                        p1 = this.points[(y+1)*this.amountX + x];
-                    this.springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'structural'});
-                }
-                /* shear springs */
-                if (x+1 < this.amountX && y+1 < this.amountY) {
-                    let p0 = this.points[y*this.amountX + x],
-                        p1 = this.points[(y+1)*this.amountX + x+1],
-                        p2 = this.points[y*this.amountX + x+1],
-                        p3 = this.points[(y+1)*this.amountX + x];
-                    this.springs.push({p0: p0, p1: p1, length: vec3.dist(p0, p1), type: 'shear'});
-                    this.springs.push({p0: p2, p1: p3, length: vec3.dist(p2, p3), type: 'shear'});
-                }
-                /* bend springs */
-                if(x+2 < this.amountX) {
-                    let p0 = this.points[y*this.amountX + x],
-                        p1 = this.points[y*this.amountX + x+2];
-                    this.springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'bend'});
-                }
-                if(y+2 < this.amountY) {
-                    let p0 = this.points[y*this.amountX + x],
-                        p1 = this.points[(y+2)*this.amountX + x];
-                    this.springs.push({p0, p1, length: vec3.dist(p0, p1), type: 'bend'});
-                }
             }
         }
         this.triangles = [];

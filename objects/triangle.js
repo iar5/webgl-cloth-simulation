@@ -53,19 +53,19 @@ class Triangle {
 
         let n = vec3.scale(dir, -1)
         let v_normalized = vec3.normalize(v);
-        //let out_v = vec3.scale(vec3.sub(v_normalized, vec3.scale(n, 2*vec3.dot(v_normalized, n))), dist_oldp); // Spiegelpunkt an n-Achse
-        let out_v = vec3.scale(v_normalized, -dist_oldp);  
+        let out_v = vec3.scale(vec3.sub(v_normalized, vec3.scale(n, 2*vec3.dot(v_normalized, n))), dist_oldp); // Spiegelpunkt an n-Achse
+        //let out_v = vec3.scale(v_normalized, -dist_oldp);  
 
-        // Schlimm wenn p.old liegt im nächsten Schritt dichter an Triangle als der Punkt?
+        // Problem: p.old liegt im nächsten Schritt dichter an Triangle als der Punkt -> Abbruch
         // Anderer Ansatz mit p=ip und p.old=p?
 
         /* Test */
-        p.x = ip.x + out_v.x;
-        p.y = ip.y + out_v.y;
-        p.z = ip.z + out_v.z;
-        p.oldx = ip.x;
-        p.oldy = ip.y;
-        p.oldz = ip.z;
+        p.x = ip.x +out_v.x
+        p.y = ip.y +out_v.y
+        p.z = ip.z +out_v.z
+        p.oldx = p.x;
+        p.oldy = p.y;
+        p.oldz = p.z;
 
         /* So wie ich denke 
         p.x = ip.x + out_v.x;

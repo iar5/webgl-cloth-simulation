@@ -40,8 +40,8 @@ mat4.identity(rotationMatrix);
 var bounce = .9;     
 var drag = 0.9;      
 var gravity = 0.981; 
-var windX = 0.000001;
-var windZ = 0.000001;
+var windX = 0.000000001;
+var windZ = 0.00000001;
 
 var objects;
 var camera = {
@@ -67,9 +67,9 @@ function initGL () {
 	let	icosa = new Obj("modelsJson/icosa.json", 'green');
 	let	sphere = new Sphere(.6, 18, 18).translate(1.5, 5, -1);
 	let	dummyObject = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.02, 20));
-	let towelFree = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth(0.02, 40));
-	let towel1Pin = new Towel(30, 30, .2).translate(3, 3, 0).applyCloth(new Cloth(0.015, 10));
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(10, 0.6));
+	let towelFree = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth(10, 0.3));
+	let towel1Pin = new Towel(30, 30, .2).translate(3, 3, 0).applyCloth(new Cloth(10, 0.2));
 	towel1Pin.pin(0);
 	towel.pin(380, 399);
 
@@ -78,7 +78,7 @@ function initGL () {
 		if(triangle.points) triangle.translate(1,3.5,1)	
 	}
 
-	objects = [dummyObject, towel, triangle, human];
+	objects = [dummyObject, towel, triangle]
 
 
 	// ----------------- Start and Loop ------------------ //
@@ -116,8 +116,8 @@ function initGL () {
 
 		objects.forEach(o => {
 			if(o.update) o.update();
-			o.draw(gl)}
-		);
+			o.draw(gl)
+		});
 		stats.update();
 		requestAnimationFrame(loop);
 	}
@@ -136,7 +136,6 @@ function initGL () {
 	// --------------- WebGL -------------------- //
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();
-
 		var vshader = gl.createShader(gl.VERTEX_SHADER);
 		gl.shaderSource(vshader, vertexShaderCode);
 		gl.compileShader(vshader);

@@ -1,5 +1,9 @@
 {
-	 "rootnode": {
+	 "__metadata__": {
+		 "format": "assimp2json"
+		,"version": 100
+	}
+	,"rootnode": {
 		 "name": "human_806polys.obj"
 		,"transformation": [
 			 1

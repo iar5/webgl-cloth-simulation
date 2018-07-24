@@ -15,7 +15,7 @@ class Obj extends Mesh {
     init(gl, callback) {
         loadJSONResource(this.src, (model) => {
             console.log(model)
-            if(!model.meshes) throw Error ("JSON Formatierung nicht untersützt") 
+            if(!model.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
 
             this._vertices = []; 
             this._normals = []; 
