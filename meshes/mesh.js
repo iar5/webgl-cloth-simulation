@@ -11,7 +11,7 @@ class Mesh{
         this.program = program;
         this.drawMode = drawMode;
     }
-    init(gl, callback){
+    initGl(gl, callback){
         this._positionBuffer = gl.createBuffer();
         this._positionBuffer.itemSize = 3;
         this._positionBuffer.numItems = this._vertices.length / 3;

@@ -7,7 +7,6 @@ class Triangle {
         // VORBERECHNUNGEN 
         // Für MÖLLER-TRUMBORE Algorithmus, Ray-Triangle Intersection mit Lotgerade
         this.EPSILON = 0.0001;
-        // Ebene aufspannende Vektoren
         this.edge1 = vec3.sub(this.b, this.a);
         this.edge2 = vec3.sub(this.c, this.a);
         // Senkrechte der Ebene dient als Lotgerade
@@ -16,7 +15,7 @@ class Triangle {
         this.pvec = vec3.cross(this.dir, this.edge2);
         this.det = vec3.dot(this.edge1, this.pvec);
     }
-    perpendicularRayTriangleIntersection(p){
+    moellerTrumbore(p){
         let EPSILON=this.EPSILON, edge1=this.edge1, edge2=this.edge2, dir=this.dir, pvec=this.pvec, det=this.det;
         if (det < EPSILON) return null;
         let tvec = vec3.sub(p, this.a);
@@ -36,7 +35,7 @@ class Triangle {
         // Anderer Kollisionsansatz: Punkt im Objekt wenn Anzahl Schnittpunkte ungerade, dann Projektion nach außen
         // Erkennung das Eindringen eines Punktes richtig! (p war im letzten Schritt noch draußen)
         let dir = this.dir
-        let t = this.perpendicularRayTriangleIntersection(p)
+        let t = this.moellerTrumbore(p)
         if(t == null) return null;
         if(t > 0) return null; // Wenn t > 0 liegt Schnittpunkt vor p (ray=p+t*dir), p ist also nicht hinter Ebene / hat sie nicht durchquärt
 
@@ -59,15 +58,17 @@ class Triangle {
         // Problem: p.old liegt im nächsten Schritt dichter an Triangle als der Punkt -> Abbruch
         // Anderer Ansatz mit p=ip und p.old=p?
 
-        /* Test */
-        p.x = ip.x +out_v.x
-        p.y = ip.y +out_v.y
-        p.z = ip.z +out_v.z
-        p.oldx = p.x;
-        p.oldy = p.y;
-        p.oldz = p.z;
+        let ip_o = vec3.scale(n, 0.1)
 
-        /* So wie ich denke 
+        /*Test */
+        p.x = ip.x + ip_o.x;
+        p.y = ip.y + ip_o.y;
+        p.z = ip.z + ip_o.z;
+        p.oldx = ip.x +ip_o.x;
+        p.oldy = ip.y +ip_o.y;
+        p.oldz = ip.z +ip_o.z;
+
+        /*So wie ich denke 
         p.x = ip.x + out_v.x;
         p.y = ip.y + out_v.y;
         p.z = ip.z + out_v.z;

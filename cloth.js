@@ -1,7 +1,7 @@
 class Cloth{
     constructor(stiffness, mass) {
-        if(stiffness > 1) stiffness = 1;
-        else if(stiffness < 0.1) stiffness = .1;
+        if(stiffness < 0) stiffness = 0;
+        else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness;
         this.mass = mass || 10;
         this.mesh = null;
@@ -13,6 +13,9 @@ class Cloth{
     }
     _setupSpringMassSystem(){
         if(this.mesh instanceof Towel){
+            let structuralStrength = 0.9;
+            let shearStrength = 0.9;
+            let bendStrength = 0.3;
             let points = this.mesh.points;
             let particelMass = this.mass/points.length;
             for (let i=0; i<points.length; i++) {
@@ -22,18 +25,19 @@ class Cloth{
             let springs = this.mesh.springs = [];
             let amountY = this.mesh.amountY;
             let amountX = this.mesh.amountX;
+  
             for (let y=0; y < amountY; y++) {
                 for (let x=0; x < amountX; x++) {
                     /* strucutral springs */
                     if (x+1 < amountX) {
                         let p0 = points[y*amountX + x],
                             p1 = points[y*amountX + x+1];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'structural')));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
                         }
                     if (y+1 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+1)*amountX + x];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1, 'structural')));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
                         }
                     /* shear springs */
                     if (x+1 < amountX && y+1 < amountY) {
@@ -41,19 +45,19 @@ class Cloth{
                             p1 = points[(y+1)*amountX + x+1],
                             p2 = points[y*amountX + x+1],
                             p3 = points[(y+1)*amountX + x];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'shear'));
-                        springs.push(new Spring(p2, p3, vec3.dist(p2, p3), 'shear'));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), shearStrength));
+                        springs.push(new Spring(p2, p3, vec3.dist(p2, p3), shearStrength));
                     }
                     /* bend springs */
                     if(x+2 < amountX) {
                         let p0 = points[y*amountX + x],
                             p1 = points[y*amountX + x+2];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'bend'));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), bendStrength));
                         }
                     if(y+2 < amountY) {
                         let p0 = points[y*amountX + x],
                             p1 = points[(y+2)*amountX + x];
-                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), 'bend'));
+                        springs.push(new Spring(p0, p1, vec3.dist(p0, p1), bendStrength));
                     }
                 }
             }
@@ -91,28 +95,23 @@ class Cloth{
             stiffnesreached = true;
             for (var j=0; j < this.mesh.springs.length; j++) {
                 let s = this.mesh.springs[j];
-                let stregth;
-                if(s.type == 'structural') stregth = 0.8;
-                else if(s.type == 'shear') stregth = 0.9;
-                else if(s.type == 'bend') stregth = 0.3;
-                else stregth = 1;
 
-                let d = vec3.sub(s.p0, s.p1)
-                let dist = vec3.length(d)
-                let percent = (dist - s.length) / dist;
-                let offset = vec3.scale(d, percent / 2 * stregth)
-
+                let d = vec3.sub(s.p1, s.p0);
+                let dist = vec3.length(d);
+                let force = s.strength * (dist - s.length); 
+                let offset = vec3.scale(vec3.normalize(d), force/2)
                 if (!s.p0.pinned) {
-                    s.p0.x -= offset.x;
-                    s.p0.y -= offset.y;
-                    s.p0.z -= offset.z;
+                    s.p0.x += offset.x;
+                    s.p0.y += offset.y;
+                    s.p0.z += offset.z;
                 }
                 if (!s.p1.pinned) {
-                    s.p1.x += offset.x;
-                    s.p1.y += offset.y;
-                    s.p1.z += offset.z;  
+                    s.p1.x -= offset.x;
+                    s.p1.y -= offset.y;
+                    s.p1.z -= offset.z;  
                 }
-                if(percent > this.stiffness) stiffnesreached = false;
+                // Abbruch wenn alle Korrekturen geringer sind als die zugelassene Elastizität
+                if(force / dist >= this.stiffness) stiffnesreached = false;
             }
         }   
     }

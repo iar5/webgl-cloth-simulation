@@ -12,7 +12,7 @@ class Obj extends Mesh {
         this.src = src;
         this.color = color;
     }
-    init(gl, callback) {
+    initGl(gl, callback) {
         loadJSONResource(this.src, (model) => {
             console.log(model)
             if(!model.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
@@ -54,7 +54,7 @@ class Obj extends Mesh {
                     this.points[this._indices[i+2]]
                 ))
             }
-            super.init(gl, callback)
+            super.initGl(gl, callback)
         })
     }
     resolveCollision(p){

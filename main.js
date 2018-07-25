@@ -40,8 +40,8 @@ mat4.identity(rotationMatrix);
 var bounce = .9;     
 var drag = 0.9;      
 var gravity = 0.981; 
-var windX = 0.000000001;
-var windZ = 0.00000001;
+var windX = 0.0000001;
+var windZ = 0.0000001;
 
 var objects;
 var camera = {
@@ -67,7 +67,7 @@ function initGL () {
 	let	icosa = new Obj("modelsJson/icosa.json", 'green');
 	let	sphere = new Sphere(.6, 18, 18).translate(1.5, 5, -1);
 	let	dummyObject = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.5));
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
 	let towelFree = new Towel(50, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth(0.3));
 	let towel1Pin = new Towel(30, 30, .2).translate(3, 3, 0).applyCloth(new Cloth(0.2));
 	towel1Pin.points[0].pin();
@@ -79,7 +79,7 @@ function initGL () {
 		if(triangle.points) triangle.translate(1.5, 3, 1);	
 	}
 
-	objects = [dummyObject, towel, icosa, triangle]
+	objects = [dummyObject, towel, triangle, icosa]
 
 
 	// ----------------- Start and Loop ------------------ //
@@ -92,13 +92,13 @@ function initGL () {
 	}(objects.length)
 
 	objects.forEach(o => {
-		o.init(gl, starter)
+		o.initGl(gl, starter)
 	});
 
 	function start(){
 		initialisationCallback()
-		let elem = document.getElementById("loadingText");
-		elem.parentNode.removeChild(elem);
+		let loadingText = document.getElementById("loadingText");
+		loadingText.parentNode.removeChild(loadingText);
 		stats = new Stats();
 		document.body.appendChild(stats.dom);
 		canvas.style.display = "initial";
