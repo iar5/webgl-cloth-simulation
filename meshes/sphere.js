@@ -52,15 +52,17 @@ class Sphere extends Mesh{
             }
         }
     }
-    resolveCollision(p){
-        if(vec3.dist(p, this.midPoint) < this.radius + this.offset) {
-            let newp = vec3.add(this.midPoint, vec3.scale(vec3.normalize({x: p.x - this.midPoint.x, y: p.y - this.midPoint.y, z: p.z - this.midPoint.z}), this.radius + this.offset));
-            p.oldx = p.x;
-            p.oldy = p.y;
-            p.oldz = p.z;
-            p.x = newp.x;
-            p.y = newp.y;
-            p.z = newp.z;
+    resolveCollision(points){
+        for(let p of points){
+            if(vec3.dist(p, this.midPoint) < this.radius + this.offset) {
+                let newp = vec3.add(this.midPoint, vec3.scale(vec3.normalize({x: p.x - this.midPoint.x, y: p.y - this.midPoint.y, z: p.z - this.midPoint.z}), this.radius + this.offset));
+                p.oldx = p.x;
+                p.oldy = p.y;
+                p.oldz = p.z;
+                p.x = newp.x;
+                p.y = newp.y;
+                p.z = newp.z;
+            }
         }
     }
 };

@@ -69,6 +69,19 @@ class Mesh{
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
         gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
+    applyCloth(cloth){
+        cloth.applyMesh(this);
+        this.cloth = cloth;
+        return this;
+    }
+    applyUpdateCallback(callack){
+        this.updater = callack;
+        return this;
+    }
+    compileVerticesFromPoints() {
+        this._vertices = [];
+        this.points.forEach(pos => this._vertices.push(pos.x, pos.y, pos.z))
+    }
     generatePointsFromVertices() {
         this.points = [];
         for(let i = 0; i < this._vertices.length; i+=3){
@@ -79,13 +92,9 @@ class Mesh{
             })
         }
     }
-    applyCloth(cloth){
-        cloth.applyMesh(this);
-        this.cloth = cloth;
-        return this;
-    }
     update(){
         if(this.cloth) this.cloth.updateMesh();
+        if(this.updater) this.updater();
     }
     /**
      * Transformationen 
@@ -155,12 +164,5 @@ class Mesh{
         })
         this.compileVerticesFromPoints();
         return this;
-    }
-    /**
-     * Vertices updaten, wenn Punkte verändert wurden
-     */
-    compileVerticesFromPoints() {
-        this._vertices = [];
-        this.points.forEach( pos => this._vertices.push(pos.x, pos.y, pos.z))
     }
 }

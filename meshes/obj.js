@@ -45,7 +45,6 @@ class Obj extends Mesh {
                 this.normals.push({x: this._normals[i], y: this._normals[i+1], z: this._normals[i+2]})
             }
 
-            // Gilt nur bei Dreiecksnetze
             this.triangles = [];
             for(let i=0; i < this._indices.length; i+=3){
                 this.triangles.push(new Triangle(
@@ -57,21 +56,14 @@ class Obj extends Mesh {
             super.initGl(gl, callback)
         })
     }
-    resolveCollision(p){
-        /* 
-        TODO Bounding Boxes, 
-            - rekursiv machen mit Teilung der Box
-            - evtl auch für y/z
-            - Box Höhe größer als lengste Dreiecks Kante
-        - Initialisierung:
-        biggestY, lowestY
-        for(triangles)
-            for(a, b, c)
-                if(y > irgendwas)
-                    box1.add(triangle)
-        */
+    resolveCollision(points, edges){
         for (let t of this.triangles) {
-            t.resolveCollision(p);
+            for(let p of points){
+                if(t.resolvePointCollision(p) == true);
+            }
+            for(let e of edges){
+                //t.resolveEdgeCollision(e);
+            }
         }
     }
 };

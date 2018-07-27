@@ -1,9 +1,10 @@
 class Cloth{
     constructor(stiffness, mass) {
-        if(stiffness < 0) stiffness = 0;
+        if (!stiffness) stiffness = 0.3;
+        else if(stiffness < 0) stiffness = 0;
         else if(stiffness > 1) stiffness = 1;
-        this.stiffness = stiffness;
-        this.mass = mass || 10;
+        this.stiffness = stiffness
+        this.mass = mass || 3;
         this.mesh = null;
     }
     applyMesh(mesh){
@@ -13,19 +14,19 @@ class Cloth{
     }
     _setupSpringMassSystem(){
         if(this.mesh instanceof Towel){
+            let towel = this.mesh;
             let structuralStrength = 0.9;
             let shearStrength = 0.9;
             let bendStrength = 0.3;
-            let points = this.mesh.points;
-            let particelMass = this.mass/points.length;
+            let points = towel.points;
+            let particelMass = this.mass / points.length / towel.density;
             for (let i=0; i<points.length; i++) {
                 let p = points[i];
                 points[i] = new Particle(p, particelMass)
             }
-            let springs = this.mesh.springs = [];
-            let amountY = this.mesh.amountY;
-            let amountX = this.mesh.amountX;
-  
+            let springs = towel.springs = [];
+            let amountY = towel.amountY;
+            let amountX = towel.amountX;
             for (let y=0; y < amountY; y++) {
                 for (let x=0; x < amountX; x++) {
                     /* strucutral springs */
@@ -62,15 +63,20 @@ class Cloth{
                 }
             }
         }
-        else{
+        else {
             throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
         }
     }
+    /*
+     * SIMULATION LOOP 
+     */
     updateMesh(){
         this._verletIntegration();
         this._disctanceConstraint();
-        this._bottomsCollisions();      
-        this._objectCollisions();
+        this._bottomsCollisions(); 
+        for(let o of objects) {
+            if(o.resolveCollision) o.resolveCollision(this.mesh.points, this.mesh.springs);      
+        }  
         this.mesh.compileVerticesFromPoints();
     }
     _verletIntegration() {
@@ -123,14 +129,6 @@ class Cloth{
                 p.oldy = -p.oldy * bounce;
                 p.oldx = p.x + (p.x-p.oldx) * friction;
                 p.oldz = p.z + (p.z-p.oldz) * friction;
-            }
-        }
-    }
-    _objectCollisions() {
-        for(let o of objects) {
-            if(!o.resolveCollision) continue;
-            for (let p of this.mesh.points) {
-                o.resolveCollision(p);      
             }
         }
     } 
