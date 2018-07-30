@@ -8,6 +8,13 @@ class Towel extends Geometry{
         this.points = this.generatePointsFromContinousArray(this._vertices)
     }
     _generateBufferData() {
+        /*
+        * PUNKTE:
+        * 1, 2, 3, 4, 5, 6, 7, 8, ... amountX-1,
+        * amountX, amountX+1, amountX+2, ... ,
+        * 2*amountX, 2*amountX+2, 2*amountX+3 ... ,
+        * 3*amountX, ...
+        */
         this._vertices = []; 
         for (let y = this.amountY; y>0; y--) {
             for (let x = 0; x < this.amountX; x++) {
@@ -18,6 +25,11 @@ class Towel extends Geometry{
                 );
             }
         }
+        /*
+        * INDICES:
+        * 1 2 .  |  . 2 .  |  . 1 2  |  . . 2
+        * 3 . .  |  1 3 .  |  . 3 .  |  . 1 3
+        */
         this._indices = [];
         for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {

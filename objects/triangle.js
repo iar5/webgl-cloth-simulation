@@ -10,7 +10,7 @@ class Triangle {
         this.c = c;
         this.radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
 
-        // VORBERECHNUNETE DATEN
+        // VORBERECHNUNETE DATEN - Werden ungültig nach einer Rotation!
         this.EPSILON = 0.0001
         this.edge1 = vec3.sub(this.b, this.a)
         this.edge2 = vec3.sub(this.c, this.a)
@@ -29,7 +29,7 @@ class Triangle {
         return vec3.dist(p, this.getCatenoid()) < this.radius;
     } 
     testTrianglSphere(t){
-        return vec3.dist(t.getCatenoid(), this.getCatenoid()) < this.radius+t.radius;
+        return vec3.dist(t.getCatenoid(), this.getCatenoid()) < t.radius+this.radius;
     }
     getCatenoid(){
         let a=this.a, b=this.b, c=this.c;
@@ -104,12 +104,12 @@ class Triangle {
      * 
      * @param {Edge} e Edge/Spring mit zwei Punkten p1 und p2
      */
-    resolveSoftEdgeCollision(e){
-        let a=this.a, b=this.b, c=this.c, n=this.n;
+    resolveSoftLineCollision(corner1, corner2){
+        let a=this.a, b=this.b, c=this.c;
 
         // 1. Schnittpunkt EdgeRay-Triangele
-        let o = e.p0;
-        let dir = vec3.normalize(vec3.sub(e.p1, e.p0));
+        let o = corner1
+        let dir = vec3.normalize(vec3.sub(corner2, corner1));
         let t = this.moellerTrumbore(o, dir);
         if(t == null || Math.abs(t) > vec3.length(dir)) return;
         let ip = new Point(o.x + t*dir.x, o.y + t*dir.y, o.z + t*dir.z)
@@ -130,22 +130,25 @@ class Triangle {
         else kv = vca
 
         // 3. Punkte so verschieben, dass Kante am äußersten Punkt liegt
-        e.p0.add(kv.scale(1+this.EPSILON));
-        e.p1.add(kv.scale(1+this.EPSILON)); 
-        e.p0.old.set(e.p0)
-        e.p1.old.set(e.p1)     
+        corner1.add(kv.scale(1+this.EPSILON));
+        corner2.add(kv.scale(1+this.EPSILON)); 
+        //corner1.old.set(corner1)
+        //corner2.old.set(corner2)     
     }
 
     /**
      * @param {Triangle} t
      */
     resolveSoftTriangleCollision(t){
-        let a=this.a, b=this.b, c=this.c, n=this.n;
+        let nn = vec3.cross(vec3.sub(t.b, t.a), vec3.sub(t.c, t.a)).normalize();
 
         this.resolveSoftPointCollision(t.a);
         this.resolveSoftPointCollision(t.b);
         this.resolveSoftPointCollision(t.c);
 
-        //t.resolveSoftEdgeCollision(e);
+        this.resolveSoftLineCollision(t.a, t.b);
+        this.resolveSoftLineCollision(t.b, t.c);
+        this.resolveSoftLineCollision(t.c, t.a);
+
     }
 }

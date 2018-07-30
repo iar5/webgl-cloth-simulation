@@ -8,7 +8,7 @@ class Point {
         return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z)
     }
     normalize(){
-        let l = this.length();
+        let l = this.getLength();
         this.x /= l;
         this.y /= l;
         this.z /= l;

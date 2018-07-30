@@ -55,11 +55,11 @@ class Obj extends Geometry {
             super.initGl(gl, callback)
         })
     }
-    resolveSoftCollision(triangles){
+    resolveSoftTriangleCollision(softTriangles){
         for (let t of this.triangles) {
-            for (let tt of triangles) {
-                if(!t.testTrianglSphere(tt)) continue
-                t.resolveSoftTriangleCollision(tt);
+            for (let toftTriangle of softTriangles) {
+                if(!t.testTrianglSphere(toftTriangle)) continue
+                t.resolveSoftTriangleCollision(toftTriangle);
             }
         }
     }

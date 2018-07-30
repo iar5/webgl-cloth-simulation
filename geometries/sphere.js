@@ -48,7 +48,7 @@ class Sphere extends Geometry{
         this.midPoint.add(new Point(x,y,z))
         return super.translate(x, y, z);
     }
-    resolveSoftCollisionWithPoint(points){
+    resolveSoftPointCollision(points){
         let midPoint = this.midPoint
         for(let p of points){
             if(vec3.dist(p, midPoint) < this.radius + this.offset) {

@@ -63,6 +63,7 @@ class Cloth{
                 }
             }
         }
+        // Im Uhrzeiersinn
         let triangles = this.triangles = [];
         for (let y = 0; y < amountY; y++) {
             for (let x = 0; x < amountX; x++) {
@@ -88,13 +89,10 @@ class Cloth{
             let p = this.geometry.points[i];
             if (p.pinned) continue;
 
-            let vx = (p.x - p.old.x) + windX;
-            let vy = (p.y - p.old.y) - p.mass * gravity; 
-            let vz = (p.z - p.old.z) + windZ;
+            let f = new Point(windX, -gravity*p.mass, windZ);
+            let v = vec3.sub(p, p.old).add(f).scale(drag);
             p.old.set(p)
-            p.x += vx * drag; // besser auf Dreiecksebene
-            p.y += vy * drag;
-            p.z += vz * drag;
+            p.add(v)
         }
     }
     _disctanceConstraint() {
@@ -119,19 +117,22 @@ class Cloth{
     }
     _collisionConstraint() {
         // With Bottom
-        let friction = 0.5;
+        let friction = .5;
+        let bounce = .9;     
+
         for (let p of this.geometry.points) {
             if (p.y < 0) {
                 p.y = 0;
-                p.old.y = -p.old.y * bounce;
                 p.old.x = p.x + (p.x-p.old.x) * friction;
+                p.old.y = -p.old.y * bounce;
                 p.old.z = p.z + (p.z-p.old.z) * friction;
             }
         }
         // With Objects
         for(let o of objects) {
-            if(o instanceof Sphere) o.resolveSoftCollisionWithPoint(this.geometry.points);
-            else if(o.resolveSoftCollision) o.resolveSoftCollision(this.triangles);  
+            if(o instanceof Towel) continue;
+            else if(o instanceof Sphere) o.resolveSoftPointCollision(this.geometry.points);
+            else o.resolveSoftTriangleCollision(this.triangles);  
         }  
     } 
 }

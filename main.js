@@ -37,8 +37,7 @@ var projectionMatrix = mat4.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
-var bounce = .9;     
-var drag = 0.9;      
+var drag = 0.95;      
 var gravity = 0.981; 
 var windX = 0.0000001;
 var windZ = 0.0000001;
