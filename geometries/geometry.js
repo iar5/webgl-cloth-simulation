@@ -1,12 +1,4 @@
-/**
- * springs für cloth Objekte
- * triangles repräsentieren die _indices, werden für Kollision benutzt
- * points repräsentieren die _vertices, werden für interne Berechnungen benutzt. 
- * _vertices, _indices, _normals, _colors für WebGL
- * _positionBuffer, _indicesBuffer, _normalBuffer, _colorBuffer für WebGL
- */
-
-class Mesh{
+class Geometry{
     constructor(program, drawMode) {
         this.program = program;
         this.drawMode = drawMode;
@@ -70,7 +62,7 @@ class Mesh{
         gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
     applyCloth(cloth){
-        cloth.applyMesh(this);
+        cloth.applyGeometry(this);
         this.cloth = cloth;
         return this;
     }
@@ -94,7 +86,7 @@ class Mesh{
         return result
     }
     update(){
-        if(this.cloth) this.cloth.updateMesh();
+        if(this.cloth) this.cloth.updategeometry();
         if(this.updater) this.updater();
     }
     /**

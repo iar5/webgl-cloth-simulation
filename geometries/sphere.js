@@ -1,4 +1,4 @@
-class Sphere extends Mesh{
+class Sphere extends Geometry{
     constructor(radius=1, numLatitudes=8, numLongitudes=8) {
         super(phongProgram, gl.TRIANGLES)
         this.radius = radius;
@@ -48,7 +48,7 @@ class Sphere extends Mesh{
         this.midPoint.add(new Point(x,y,z))
         return super.translate(x, y, z);
     }
-    resolveSoftCollision(points){
+    resolveSoftCollisionWithPoint(points){
         let midPoint = this.midPoint
         for(let p of points){
             if(vec3.dist(p, midPoint) < this.radius + this.offset) {

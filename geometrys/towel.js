@@ -1,4 +1,4 @@
-class Towel extends Mesh{
+class Towel extends geometry{
     constructor(amountX=10, amountY=10, density=1) {
         super(basicProgram, gl.LINES)
         this.amountX = amountX;

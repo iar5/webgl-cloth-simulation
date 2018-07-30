@@ -8,7 +8,7 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        this._radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
+        this.radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
 
         // VORBERECHNUNETE DATEN
         this.EPSILON = 0.0001
@@ -20,15 +20,35 @@ class Triangle {
     }
 
     /**
-     * Testet ob Kollision überhaupt mlgich scheint mit einer Bounding Sphere 
+     * Testet ob Kollision überhaupt mlgich ist mit einer Bounding Sphere 
      * Neuberechnung von Catenoid wegen Transformationen der Punkte
      * @param {Point} p 
      * @returns {boolean}
      */
-    testBoundingSphere(p){
-        let a=this.a, b=this.b, c=this.c, radius=this._radius;
-        let catenoid = new Point((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
-        return vec3.dist(p, catenoid) < radius;
+    testPointSphere(p){
+        return vec3.dist(p, this.getCatenoid()) < this.radius;
+    } 
+    testTrianglSphere(t){
+        return vec3.dist(t.getCatenoid(), this.getCatenoid()) < this.radius+t.radius;
+    }
+    getCatenoid(){
+        let a=this.a, b=this.b, c=this.c;
+        return new Point((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
+    }
+
+    /**
+     * Ericson S.128
+     * @param {Point} p Point
+     * @param {Point} a Segment Start
+     * @param {Point} b Segment End
+     * @returns {Point}
+     */
+    closestPointOnSegmen(p, a, b){
+        let ab = vec3.sub(b, a);
+        let t = vec3.dot(vec3.sub(p,a),ab) / vec3.dot(ab,ab);
+        if(t < 0) t = 0;
+        if(t > 1) t = 1;
+        return vec3.add(a, vec3.scale(ab, t)) 
     }
 
     /**
@@ -81,20 +101,6 @@ class Triangle {
     }  
 
     /**
-     * Ericson S.128
-     * @param {Point} p Point
-     * @param {Point} a Segment Start
-     * @param {Point} b Segment End
-     */
-    closestPointOnSegmen(p, a, b){
-        let ab = vec3.sub(b, a);
-        let t = vec3.dot(vec3.sub(p,a),ab) / vec3.dot(ab,ab);
-        if(t < 0) t = 0;
-        if(t > 1) t = 1;
-        return vec3.add(a, vec3.scale(ab, t)) 
-    }
-
-    /**
      * 
      * @param {Edge} e Edge/Spring mit zwei Punkten p1 und p2
      */
@@ -128,5 +134,18 @@ class Triangle {
         e.p1.add(kv.scale(1+this.EPSILON)); 
         e.p0.old.set(e.p0)
         e.p1.old.set(e.p1)     
+    }
+
+    /**
+     * @param {Triangle} t
+     */
+    resolveSoftTriangleCollision(t){
+        let a=this.a, b=this.b, c=this.c, n=this.n;
+
+        this.resolveSoftPointCollision(t.a);
+        this.resolveSoftPointCollision(t.b);
+        this.resolveSoftPointCollision(t.c);
+
+        //t.resolveSoftEdgeCollision(e);
     }
 }

@@ -6,7 +6,7 @@
  * - Sonst hat jedes Dreieck eigene Punkte die z.B. bei Umpositionierung unabhängig vom Dublikat sind
  */
 
-class Obj extends Mesh {
+class Obj extends Geometry {
     constructor(src, color) {
         super(phongProgram, gl.TRIANGLES)
         this.src = src;
@@ -55,17 +55,15 @@ class Obj extends Mesh {
             super.initGl(gl, callback)
         })
     }
-    resolveSoftCollision(points, edges){
+    resolveSoftCollision(triangles){
         for (let t of this.triangles) {
-            for(let p of points){
-                if(t.testBoundingSphere(p)) t.resolveSoftPointCollision(p);
-            }
-            for(let e of edges){
-                t.resolveSoftEdgeCollision(e);
+            for (let tt of triangles) {
+                if(!t.testTrianglSphere(tt)) continue
+                t.resolveSoftTriangleCollision(tt);
             }
         }
     }
-};
+}
 
 
 

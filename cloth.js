@@ -5,31 +5,29 @@ class Cloth{
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
         this.mass = mass || 3;
-        this.mesh = null;
+        this.geometry = null;
     }
-    applyMesh(mesh){
-        if(!mesh instanceof Towel) throw Error("Mesh not suitable for cloth simulation")
-        this.mesh = mesh;
+    applyGeometry(geometry){
+        if(!geometry instanceof Towel) throw Error("geometry not suitable for cloth simulation")
+        this.geometry = geometry;
         this._setupSpringMassSystem();
     }
     _setupSpringMassSystem(){
-        if(!this.mesh instanceof Towel) throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
-        let towel = this.mesh;
+        if(!this.geometry instanceof Towel) throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
+        let towel = this.geometry;
+        let points = towel.points;
+        let amountY = towel.amountY, amountX = towel.amountX;
+        let particelMass = this.mass / points.length / towel.density;
 
         let structuralStrength = 0.9;
         let shearStrength = 0.9;
         let bendStrength = 0.3;
-
-        let points = towel.points;
-        let particelMass = this.mass / points.length / towel.density;
-        let amountY = towel.amountY, amountX = towel.amountX;
 
         for (let i=0; i<points.length; i++) {
             let p = points[i];
             points[i] = new Particle(p, particelMass)
         }
         let springs = this.springs = [];
-        let edges = this.edges = [];
         for (let y=0; y < amountY; y++) {
             for (let x=0; x < amountX; x++) {
                 /* strucutral springs */
@@ -37,13 +35,11 @@ class Cloth{
                     let p0 = points[y*amountX + x],
                         p1 = points[y*amountX + x+1];
                     springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
-                    edges.push(new Spring(p0, p1))
                     }
                 if (y+1 < amountY) {
                     let p0 = points[y*amountX + x],
                         p1 = points[(y+1)*amountX + x];
                     springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
-                    edges.push(new Spring(p0, p1))
                     }
                 /* shear springs */
                 if (x+1 < amountX && y+1 < amountY) {
@@ -67,19 +63,29 @@ class Cloth{
                 }
             }
         }
+        let triangles = this.triangles = [];
+        for (let y = 0; y < amountY; y++) {
+            for (let x = 0; x < amountX; x++) {
+                if (y + 1 == amountY) break;
+                if (x + 1 == amountX) continue;
+                triangles.push(new Triangle(points[y*amountX + x], points[y*amountX + x+1], points[(y+1)*amountX + x]));
+                triangles.push(new Triangle(points[(y+1)*amountX + x], points[y*amountX + x+1], points[(y+1)*amountX + x+1]));
+            }
+        }
+    
     }
     /*
      * SIMULATION LOOP 
      */
-    updateMesh(){
+    updategeometry(){
         this._verletIntegration();
         this._disctanceConstraint();
         this._collisionConstraint(); 
-        this.mesh.compileVerticesFromPoints();
+        this.geometry.compileVerticesFromPoints();
     }
     _verletIntegration() {
-        for (let i=0; i < this.mesh.points.length; i++) {
-            let p = this.mesh.points[i];
+        for (let i=0; i < this.geometry.points.length; i++) {
+            let p = this.geometry.points[i];
             if (p.pinned) continue;
 
             let vx = (p.x - p.old.x) + windX;
@@ -114,7 +120,7 @@ class Cloth{
     _collisionConstraint() {
         // With Bottom
         let friction = 0.5;
-        for (let p of this.mesh.points) {
+        for (let p of this.geometry.points) {
             if (p.y < 0) {
                 p.y = 0;
                 p.old.y = -p.old.y * bounce;
@@ -124,7 +130,8 @@ class Cloth{
         }
         // With Objects
         for(let o of objects) {
-            if(o.resolveSoftCollision) o.resolveSoftCollision(this.mesh.points, this.edges);      
+            if(o instanceof Sphere) o.resolveSoftCollisionWithPoint(this.geometry.points);
+            else if(o.resolveSoftCollision) o.resolveSoftCollision(this.triangles);  
         }  
     } 
 }
