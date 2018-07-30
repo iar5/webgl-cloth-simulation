@@ -4,10 +4,10 @@ class Towel extends Mesh{
         this.amountX = amountX;
         this.amountY = amountY;
         this.density = density;
-        this._generateVerticesIndicesAndColors();
-        this.generatePointsFromVertices();
+        this._generateBufferData();
+        this.points = this.generatePointsFromContinousArray(this._vertices)
     }
-    _generateVerticesIndicesAndColors() {
+    _generateBufferData() {
         this._vertices = []; 
         for (let y = this.amountY; y>0; y--) {
             for (let x = 0; x < this.amountX; x++) {

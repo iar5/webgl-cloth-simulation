@@ -79,18 +79,19 @@ class Mesh{
         return this;
     }
     compileVerticesFromPoints() {
-        this._vertices = [];
-        this.points.forEach(pos => this._vertices.push(pos.x, pos.y, pos.z))
+        this._vertices = this.generateContinousArrayFromPoints(this.points);
     }
-    generatePointsFromVertices() {
-        this.points = [];
-        for(let i = 0; i < this._vertices.length; i+=3){
-            this.points.push({
-                x: this._vertices[i], 
-                y: this._vertices[i+1], 
-                z: this._vertices[i+2]
-            })
+    generatePointsFromContinousArray(arr){
+        let result = []
+        for(let i = 0; i < arr.length; i+=3){
+            result.push(new Point(arr[i], arr[i+1], arr[i+2]))
         }
+        return result
+    }
+    generateContinousArrayFromPoints(points){       
+        let result = []
+        points.forEach(pos => result.push(pos.x, pos.y, pos.z))
+        return result
     }
     update(){
         if(this.cloth) this.cloth.updateMesh();
@@ -98,24 +99,13 @@ class Mesh{
     }
     /**
      * Transformationen 
-     * TODO Normalen mit rotieren
+     * TODO Normalen mit rotieren 
      */
     translate(x, y, z){
-        // Für Kreis Mittelpunkt
-        if(this.midPoint) {
-            this.midPoint.x += x;
-            this.midPoint.y += y;
-            this.midPoint.z += z;
-        };
+        let temp = new Point(x, y, z)
         this.points.forEach(pos => {
-            pos.x += x;
-            pos.y += y;
-            pos.z += z;
-            if(pos.oldx) {
-                pos.oldx += x;
-                pos.oldy += y;
-                pos.oldz += z;
-            }
+            pos.add(temp)
+            if(pos.old) pos.old.add(temp)
         });
         this.compileVerticesFromPoints();
         return this; 
@@ -126,10 +116,10 @@ class Mesh{
             let y = pos.y;
             pos.y = y*Math.cos(rad) - pos.z*Math.sin(rad);
             pos.z = y*Math.sin(rad) + pos.z*Math.cos(rad);
-            if(pos.oldx) {
-                let oldy = pos.oldy;
-                pos.oldy = oldy*Math.cos(rad) - pos.oldz*Math.sin(rad);
-                pos.oldz = oldy*Math.sin(rad) + pos.oldz*Math.cos(rad);
+            if(pos instanceof Particle) {
+                let oldy = pos.old.y;
+                pos.old.y = oldy*Math.cos(rad) - pos.old.z*Math.sin(rad);
+                pos.old.z = oldy*Math.sin(rad) + pos.old.z*Math.cos(rad);
             }
         });
         this.compileVerticesFromPoints();
@@ -141,10 +131,10 @@ class Mesh{
             let z = pos.z;
             pos.x = z*Math.sin(rad) + pos.x*Math.cos(rad);
             pos.z = z*Math.cos(rad) - pos.x*Math.sin(rad);
-            if(pos.oldx) {
-                let oldz = pos.oldz;
-                pos.oldx = oldz*Math.sin(rad) + pos.oldx*Math.cos(rad);
-                pos.oldz = oldz*Math.cos(rad) - pos.oldx*Math.sin(rad);
+            if(pos instanceof Particle) {
+                let oldz = pos.old.z;
+                pos.old.x = oldz*Math.sin(rad) + pos.old.x*Math.cos(rad);
+                pos.old.z = oldz*Math.cos(rad) - pos.old.x*Math.sin(rad);
             }
         })
         this.compileVerticesFromPoints();
@@ -156,10 +146,10 @@ class Mesh{
             let x = pos.x;
             pos.x = x*Math.cos(rad) - pos.y*Math.sin(rad);
             pos.y = x*Math.sin(rad) + pos.y*Math.cos(rad);
-            if(pos.oldx) {
-                let oldx = pos.oldx;
-                pos.oldx = oldx*Math.cos(rad) - pos.oldy*Math.sin(rad);
-                pos.oldy = oldx*Math.sin(rad) + pos.oldy*Math.cos(rad);
+            if(pos instanceof Particle) {
+                let oldx = pos.old.x;
+                pos.old.x = oldx*Math.cos(rad) - pos.old.y*Math.sin(rad);
+                pos.old.y = oldx*Math.sin(rad) + pos.old.y*Math.cos(rad);
             }
         })
         this.compileVerticesFromPoints();

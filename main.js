@@ -55,6 +55,7 @@ function initGL () {
 	gl = canvas.getContext("experimental-webgl");
 	gl.enable(gl.DEPTH_TEST);
 	initShaders();
+	
 
 	// ----------------- Scene ------------------ //
 	/* IMPROVEMENTS
@@ -66,9 +67,11 @@ function initGL () {
 	let	human = new Obj("modelsJson/human_806polys.json");
 	let	icosa = new Obj("modelsJson/icosa.json", 'green');
 	let	dummy = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let	sphere = new Sphere(.6, 18, 18).translate(1.5, 5, -1);
+	let	sphere = new Sphere(1, 18, 18).translate(-1.5, 5, -1);
 	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.3, 5));
 	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0, 5));
+	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0, 5));
+
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
 	towel.points[380].pin();
 	towel.points[399].pin();
@@ -77,15 +80,16 @@ function initGL () {
 	towelTight.points[1560].pin();
 
 	var initialisationCallback = () => {
-		if(triangle.points) triangle.translate(1.5, 3, 0);
-		if(icosa.points) icosa.translate(-1.5, 3.5, 0);
+		if(triangle.points) triangle.translate(-1.5, 3, 0);
+		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
 
-	objects = [dummy, towelTight, cube, icosa]
+	objects = [dummy, towelTight, sphere, cube, icosa]
 
 
-	// ----------------- Start and Loop ------------------ //
+
+	// ----------------- Scene End ------------------ //
 	var starter = function(count){
 		var counter = count;
 		return function(){
@@ -136,7 +140,6 @@ function initGL () {
 		lastTick = timeNow;
 	}
 
-	// --------------- WebGL -------------------- //
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();
 		var vshader = gl.createShader(gl.VERTEX_SHADER);

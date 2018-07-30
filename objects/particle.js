@@ -1,21 +1,15 @@
 class Particle extends Point{
-    constructor(x, y, z, oldx, oldy, oldz, mass){
+    constructor(x, y, z, mass){
         if(z == undefined){
-            // x: Point
-            // y: mass
             let p = x;
             super(p.x, p.y, p.z)
-            this.oldx = p.x;
-            this.oldy = p.y;
-            this.oldz = p.z;
             this.mass = y;
+            this.old = new Point(p.x, p.y, p.z)
         }
         else{
             super(x, y, z)
-            this.oldx = oldx;
-            this.oldy = oldy;
-            this.oldz = oldz;
             this.mass = mass;
+            this.old = new Point(x, y, z)
         }
         this.pinned = false;
     } 

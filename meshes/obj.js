@@ -10,7 +10,14 @@ class Obj extends Mesh {
     constructor(src, color) {
         super(phongProgram, gl.TRIANGLES)
         this.src = src;
-        this.color = color;
+
+        if(color == 'red') this.color = [1, 0, 0, 1]
+        else if(color == 'green') this.color = [0, 1, 0, 1]
+        else if(color == 'blue') this.color = [0, 0, 1, 1]
+        else if(color == 'yellow') this.color = [1, 1, 0, 1]
+        else if(color == 'cyan') this.color = [0, 1, 1, 1]
+        else if(color == 'magenta') this.color = [1, 0, 1, 1]
+        else this.color = [.5, .6, .5, 1]
     }
     initGl(gl, callback) {
         loadJSONResource(this.src, (model) => {
@@ -29,22 +36,14 @@ class Obj extends Mesh {
                 indicesOffset += mesh.vertices.length/3;
             }
             this._colors = []
-            for(let i=0; i<this._vertices.length/3; i++){
-                if(this.color == 'red') this._colors.push(1, 0, 0, 1)
-                else if(this.color == 'green') this._colors.push(0, 1, 0, 1)
-                else if(this.color == 'blue') this._colors.push(0, 0, 1, 1)
-                else if(this.color == 'yellow') this._colors.push(1, 1, 0, 1)
-                else if(this.color == 'cyan') this._colors.push(0, 1, 1, 1)
-                else if(this.color == 'magenta') this._colors.push(1, 0, 1, 1)
-                else this._colors.push(.5, .6, .5, 1)
-            }
-            this.generatePointsFromVertices();
+            let r=this.color[0], g=this.color[1], b=this.color[2], a=this.color[3];
+            for(let i=0; i<this._vertices.length/3; i++) this._colors.push(r,g,b,a);
 
+            this.points = this.generatePointsFromContinousArray(this._vertices)
             this.normals = [];
             for(let i=0; i < this._normals.length; i+=3){
                 this.normals.push({x: this._normals[i], y: this._normals[i+1], z: this._normals[i+2]})
             }
-
             this.triangles = [];
             for(let i=0; i < this._indices.length; i+=3){
                 this.triangles.push(new Triangle(
@@ -56,13 +55,13 @@ class Obj extends Mesh {
             super.initGl(gl, callback)
         })
     }
-    resolveCollision(points, edges){
+    resolveSoftCollision(points, edges){
         for (let t of this.triangles) {
             for(let p of points){
-                if(t.resolvePointCollision(p) == true);
+                if(t.testBoundingSphere(p)) t.resolveSoftPointCollision(p);
             }
             for(let e of edges){
-                //t.resolveEdgeCollision(e);
+                t.resolveSoftEdgeCollision(e);
             }
         }
     }

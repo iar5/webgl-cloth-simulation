@@ -2,16 +2,16 @@ class Sphere extends Mesh{
     constructor(radius=1, numLatitudes=8, numLongitudes=8) {
         super(phongProgram, gl.TRIANGLES)
         this.radius = radius;
-        this.numLatitudes  = numLatitudes;
+        this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;
+       
+        this.offset = 0.01;
+        this.midPoint = new Point(0, 0, 0);
 
-        this.midPoint = {x: 0, y: 0, z:0}
-        this.offset = 0.05;
-
-        this._generateVerticesIndicesAndColors();
-        this.generatePointsFromVertices();
+        this._generateBufferData();
+        this.points = this.generatePointsFromContinousArray(this._vertices)
     }
-    _generateVerticesIndicesAndColors() {
+    _generateBufferData() {
         this._vertices = []; 
         this._normals = [];
         for (let latitude = 0; latitude <= this.numLatitudes; latitude++) {
@@ -26,12 +26,8 @@ class Sphere extends Mesh{
                 let x = cosPhi * sinTheta;
                 let y = cosTheta;
                 let z = sinPhi * sinTheta;
-                this._normals.push(x);
-                this._normals.push(y);
-                this._normals.push(z);
-                this._vertices.push(this.radius * x);
-                this._vertices.push(this.radius * y);
-                this._vertices.push(this.radius * z);
+                this._normals.push(x, y, z);
+                this._vertices.push(x*this.radius, y*this.radius, z*this.radius);
             }
         }
         this._colors = [];
@@ -43,25 +39,22 @@ class Sphere extends Mesh{
             for (let longitude=0; longitude < this.numLongitudes; longitude++) {
                 let first  = latitude * (this.numLongitudes + 1) + longitude;
                 let second = first + this.numLongitudes + 1;
-                this._indices.push(first);
-                this._indices.push(second);
-                this._indices.push(first + 1);
-                this._indices.push(second);
-                this._indices.push(second + 1);
-                this._indices.push(first + 1);
+                this._indices.push(first, second, first+1);  
+                this._indices.push(second, second+1, first+1);
             }
         }
     }
-    resolveCollision(points){
+    translate(x, y, z){
+        this.midPoint.add(new Point(x,y,z))
+        return super.translate(x, y, z);
+    }
+    resolveSoftCollision(points){
+        let midPoint = this.midPoint
         for(let p of points){
-            if(vec3.dist(p, this.midPoint) < this.radius + this.offset) {
-                let newp = vec3.add(this.midPoint, vec3.scale(vec3.normalize({x: p.x - this.midPoint.x, y: p.y - this.midPoint.y, z: p.z - this.midPoint.z}), this.radius + this.offset));
-                p.oldx = p.x;
-                p.oldy = p.y;
-                p.oldz = p.z;
-                p.x = newp.x;
-                p.y = newp.y;
-                p.z = newp.z;
+            if(vec3.dist(p, midPoint) < this.radius + this.offset) {
+                let newp = vec3.add(midPoint, vec3.scale(vec3.normalize({x: p.x - midPoint.x, y: p.y - midPoint.y, z: p.z - midPoint.z}), this.radius + this.offset));
+                p.old.set(p)
+                p.set(newp)
             }
         }
     }
