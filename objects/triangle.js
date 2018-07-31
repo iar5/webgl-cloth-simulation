@@ -8,7 +8,6 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        this.radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
         // VORBERECHNUNETE DATEN - Nur für statische Objekte (keine Roatation!)
         this.EPSILON = 0.0001
         this.edge1 = vec3.sub(this.b, this.a)
@@ -25,15 +24,23 @@ class Triangle {
      * @returns {boolean}
      */
     testPointSphere(p){
-        return vec3.dist(p, this.getCatenoid()) +this.EPSILON <= this.radius;
+        return vec3.dist(p, this.getCatenoid()) + this.EPSILON <= this.getRadius();
     } 
     testTrianglSphere(t){
-        return vec3.dist(t.getCatenoid(), this.getCatenoid()) +this.EPSILON <= t.radius+this.radius;
+        return vec3.dist(t.getCatenoid(), this.getCatenoid()) +this.EPSILON <= t.getRadius()+this.getRadius();
     }
     getCatenoid(){
         let a=this.a, b=this.b, c=this.c;
         return new vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
     }
+    getRadius(){
+        let a=this.a, b=this.b, c=this.c;
+        return Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength()) / 2
+    }
+
+    /**
+     * 
+     */
     getClockwiseNormal(){
         this.edge1 = vec3.sub(this.b, this.a)
         this.edge2 = vec3.sub(this.c, this.a)
@@ -132,7 +139,7 @@ class Triangle {
         if(dab < dbc && dab < dca)  contact = new Contact(ip, vab, dab);
         else if(dbc < dca)          contact = new Contact(ip, vbc, dbc);
         else                        contact = new Contact(ip, vca, dca); 
-        //return contact;
+        return contact;
 
         let impuls;
         if(dab < dbc && dab < dca)  impuls = vab;
