@@ -1,0 +1,100 @@
+{
+    /**
+     * (Sicht von oben)
+     * 
+     *            ∧ y 
+     *            |
+     *         B(0,-2)  
+     *            |
+     *  ----------+-----------> x
+     *            |
+     *    C(2,2)  |   A(2,2)
+     *            |
+     * 
+     */
+
+    let a = new vec3(2, 0, 2)
+    let b = new vec3(0, 0, -2)
+    let c = new vec3(-2, 0, 2)
+    let tri = new Triangle(a, b, c)
+
+    {
+        let n = tri.getCCNormal()
+        console.assert(n.x==0 && n.y==1 &&n.z==0, "getCCNormal")
+    }
+    {
+        //   ↓
+        //   ▲
+        let o = new vec3(0, 5, 0);
+        let v = new vec3(0, -1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == 5, "MoellerTrumbore: Strahl über Dreieck, zeigt nach unten: t = " + t)
+    }
+    {
+        //   ▲
+        //   ↓
+        let o = new vec3(0, -5, 0);
+        let v = new vec3(0, -1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == -5, "MoellerTrumbore: Strahl unter Dreieck, zeigt nach unten: t = " + t)
+    }
+    {
+        //   ↑
+        //   ▲
+        let o = new vec3(0, 5, 0);
+        let v = new vec3(0, 1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == -5, "MoellerTrumbore: Strahl über Dreieck, zeigt nach oben: t = " + t)
+    }
+    {
+        //   ▲
+        //   ↑
+        let o = new vec3(0, -5, 0);
+        let v = new vec3(0, 1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == 5, "MoellerTrumbore: Strahl unter Dreieck, zeigt nach oben: t = " + t)
+    }
+
+    /* Treffer auf der Kante*/
+    {
+        //  ↑
+        //   ▲ 
+        let o = new vec3(2, 5, 2);
+        let v = new vec3(0, 1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == -5, "MoellerTrumbore: Test an der Kante, Strahl über Dreieck, zeigt nach oben: t = " + t)
+    }
+    {
+        //  ↓
+        //   ▲ 
+        let o = new vec3(2, 5, 2);
+        let v = new vec3(0, -1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == 5, t)
+    }
+    /* Keine Treffer */
+    {
+        // ↑ 
+        //   ▲ 
+        let o = new vec3(2.1, 5, 2);
+        let v = new vec3(0, 1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == null, "Senkrecht vorbei")
+    }
+    {
+        //   →
+        //   ▲ 
+        let o = new vec3(0, 5, 0);
+        let v = new vec3(1, 0, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == null, "Parallel vobei")
+    }
+    {
+        //   ←
+        //   ▲ 
+        let o = new vec3(0, 5, 0);
+        let v = new vec3(-1, 0, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == null, "Parallel vobei")
+    }
+}

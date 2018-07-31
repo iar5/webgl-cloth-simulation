@@ -26,9 +26,9 @@ class Towel extends Geometry{
             }
         }
         /*
-        * INDICES:
-        * 1 2 .  |  . 2 .  |  . 1 2  |  . . 2
-        * 3 . .  |  1 3 .  |  . 3 .  |  . 1 3
+        * INDICES: (CounterClockwise)
+        * 1 3 .  |  . 3 .  |  . 1 3  |  . . 3
+        * 2 . .  |  1 2 .  |  . 2 .  |  . 1 2
         */
         this._indices = [];
         for (let y = 0; y < this.amountY; y++) {
@@ -36,8 +36,8 @@ class Towel extends Geometry{
                 if(this.drawMode == gl.TRIANGLES){
                     if (y + 1 == this.amountY) break;
                     if (x + 1 == this.amountX) continue;
-                    this._indices.push(y*this.amountX + x, y*this.amountX + x+1, (y+1)*this.amountX + x);
-                    this._indices.push((y+1)*this.amountX + x, y*this.amountX + x+1, (y+1)*this.amountX + x+1);
+                    this._indices.push(y*this.amountX + x, (y+1)*this.amountX + x, y*this.amountX + x+1);
+                    this._indices.push((y+1)*this.amountX + x, (y+1)*this.amountX + x+1), y*this.amountX + x+1;
                 }
                 else if(this.drawMode == gl.LINES){
                     if (y+1 < this.amountY) this._indices.push(y*this.amountX + x, (y+1)*this.amountX + x);

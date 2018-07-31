@@ -8,13 +8,13 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        // VORBERECHNUNETE DATEN - Nur für statische Objekte (keine Roatation!)
+        // VORBERECHNUNETE DATEN - Nur für statische Objekte!! (Ohne Roatation, Federn, o.Ä.)
         this.EPSILON = 0.0001
-        this.edge1 = vec3.sub(this.b, this.a)
-        this.edge2 = vec3.sub(this.c, this.a)
-        this.n = vec3.normalize(vec3.cross(this.edge1, this.edge2))
-        this.pvec = vec3.cross(vec3.scale(this.n, -1), this.edge2)
-        this.det = vec3.dot(this.edge1, this.pvec)
+        this._edge1 = vec3.sub(this.b, this.a)
+        this._edge2 = vec3.sub(this.c, this.a)
+        this._n = vec3.normalize(vec3.cross(this._edge1, this._edge2))
+        this._pvec = vec3.cross(vec3.scale(this._n, -1), this._edge2)
+        this._det = vec3.dot(this._edge1, this._pvec)
     }
 
     /**
@@ -41,7 +41,7 @@ class Triangle {
     /**
      * 
      */
-    getClockwiseNormal(){
+    getCCNormal(){
         this.edge1 = vec3.sub(this.b, this.a)
         this.edge2 = vec3.sub(this.c, this.a)
         return vec3.normalize(vec3.cross(this.edge1, this.edge2))
@@ -65,22 +65,27 @@ class Triangle {
     /**
      * MÖLLER-TRUMBORE Ray-Triangle Intersection Algorithmus
      * @param {vec3} o Ortsvektor des Strahles
-     * @param {?} dir Als Richtungsvektor wird Lotgerade (dir = -n) genomen
-     * @param {vec3} dir Eigener Richtungsvektor des Strahles
+     * @param {vec3|?} dir Richtungsvektor des Strahles | Richtungsvektor ist Lotgerade (dir = -n)
      * @returns {Number} Skalar t
      */
     moellerTrumbore(o, dir){
-        let EPSILON=this.EPSILON, edge1=this.edge1, edge2=this.edge2, pvec=this.pvec, det=this.det;
+        let EPSILON=this.EPSILON, edge1, edge2, pvec, det;
         if(dir == undefined){
-            // Point-Triangle mit Lotgerade
-            dir = vec3.scale(this.n, -1)
+            // Point-Triangle mit Lotgerade und vorberechneten Daten
+            edge1 = this._edge1;
+            edge2 = this._edge2;
+            pvec = this._pvec;
+            det = this._det;
+            dir = vec3.scale(this._n, -1)
         }
         else {
-            // Edge-Triangle
-            pvec = vec3.cross(dir, this.edge2);
-            det = vec3.dot(edge1, pvec);
+            // Edge-Triangle (Costum Ray)
+            edge1 = vec3.sub(this.b, this.a)
+            edge2 = vec3.sub(this.c, this.a)
+            pvec = vec3.cross(dir, edge2);
+            det = vec3.dot(edge1, pvec); 
         }
-        if (det < EPSILON) return null;
+        if (-EPSILON < det && det < EPSILON) return null; // ray parallel zu Ebene
         let tvec = vec3.sub(o, this.a);
         let u = vec3.dot(tvec, pvec);
         if (u < 0 || u > det) return null;
@@ -96,10 +101,10 @@ class Triangle {
      * @param {vec3} p 
      */
     resolveSoftPointCollision(p) { 
-        let n = this.n, dir = vec3.scale(n, -1)
+        let dir  = vec3.scale(this._n, -1);
         let t = this.moellerTrumbore(p)
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
-        if(t == null || t > 0) return false; 
+        if(t == null || t > this.EPSILON) return false; 
         let ip   = new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
         let oldp = new vec3(p.old.x,       p.old.y,       p.old.z)
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
@@ -141,6 +146,7 @@ class Triangle {
         else                        contact = new Contact(ip, vca, dca); 
         return contact;
 
+        // 3.1 So wie Vorher
         let impuls;
         if(dab < dbc && dab < dca)  impuls = vab;
         else if(dbc < dca)          impuls = vbc;
@@ -169,7 +175,7 @@ class Triangle {
         else if(!isNaN(c_ca))                            resolvingContact = c_ca     
         else return;
 
-        let tn = t.getClockwiseNormal().add(this.getClockwiseNormal()).normalize();
+        let tn = t.getCCNormal().add(this.getCCNormal()).normalize();
         let impuls = tn.scale(resolvingContact.depth + this.EPSILON);
         t.a.add(impuls)
         t.b.add(impuls)

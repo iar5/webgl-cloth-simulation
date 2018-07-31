@@ -63,14 +63,14 @@ class Cloth{
                 }
             }
         }
-        // Im Uhrzeiersinn
+        // CounterClockwise
         let triangles = this.triangles = [];
         for (let y = 0; y < amountY; y++) {
             for (let x = 0; x < amountX; x++) {
                 if (y + 1 == amountY) break;
                 if (x + 1 == amountX) continue;
-                triangles.push(new Triangle(points[y*amountX + x], points[y*amountX + x+1], points[(y+1)*amountX + x]));
-                triangles.push(new Triangle(points[(y+1)*amountX + x], points[y*amountX + x+1], points[(y+1)*amountX + x+1]));
+                triangles.push(new Triangle(points[y*amountX + x], points[(y+1)*amountX + x], points[y*amountX + x+1]));
+                triangles.push(new Triangle(points[(y+1)*amountX + x], points[(y+1)*amountX + x+1], points[y*amountX + x+1]));
             }
         }
     
@@ -133,7 +133,9 @@ class Cloth{
         for(let o of objects) {
             if(o instanceof Towel) continue;
             else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.geometry.points);
+            else if(o.collisionTest) o.collisionTest(this.geometry.points);  
             else o.resolveSoftTriangleCollision(this.triangles);  
+
         }  
     } 
 }

@@ -63,6 +63,17 @@ class Obj extends Geometry {
             }
         }
     }
+    /*collisionTest(points){
+        for(let p of points){
+            let intersections = [];
+            let dir = vec3.sub(p, p.old).normalize();
+            for (let tri of this.triangles) {
+                let t = tri.moellerTrumbore(p, dir);
+                if(t != null && t > 0) intersections.push(new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
+            }  
+            if(intersections.length > 1) console.log(this.src, intersections.length)
+        }
+    }*/
 }
 
 
