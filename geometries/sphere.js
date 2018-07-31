@@ -5,7 +5,7 @@ class Sphere extends Geometry{
         this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;
        
-        this.offset = 0.01;
+        this.EPSILON = 0.01;
         this.midPoint = new vec3(0, 0, 0);
 
         this._generateBufferData();
@@ -51,8 +51,8 @@ class Sphere extends Geometry{
     resolveSoftPointCollision(points){
         let midPoint = this.midPoint
         for(let p of points){
-            if(vec3.dist(p, midPoint) < this.radius + this.offset) {
-                let newp = vec3.add(midPoint, vec3.scale(vec3.normalize({x: p.x - midPoint.x, y: p.y - midPoint.y, z: p.z - midPoint.z}), this.radius + this.offset));
+            if(vec3.dist(p, midPoint) < this.radius + this.EPSILON) {
+                let newp = vec3.add(midPoint, vec3.scale(vec3.normalize({x: p.x - midPoint.x, y: p.y - midPoint.y, z: p.z - midPoint.z}), this.radius + this.EPSILON));
                 p.old.set(p)
                 p.set(newp)
             }

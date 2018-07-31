@@ -9,7 +9,7 @@ class Triangle {
         this.b = b;
         this.c = c;
         this.radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
-        // VORBERECHNUNETE DATEN - Werden ungültig nach einer Rotation!
+        // VORBERECHNUNETE DATEN - Nur für statische Objekte (keine Roatation!)
         this.EPSILON = 0.0001
         this.edge1 = vec3.sub(this.b, this.a)
         this.edge2 = vec3.sub(this.c, this.a)
@@ -34,13 +34,18 @@ class Triangle {
         let a=this.a, b=this.b, c=this.c;
         return new vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
     }
+    getClockwiseNormal(){
+        this.edge1 = vec3.sub(this.b, this.a)
+        this.edge2 = vec3.sub(this.c, this.a)
+        return vec3.normalize(vec3.cross(this.edge1, this.edge2))
+    }
 
     /**
      * Ericson S.128
      * @param {vec3} p Point
      * @param {vec3} a Segment Start
      * @param {vec3} b Segment End
-     * @returns {vec3}
+     * @returns {vec3} closets point to segment
      */
     closestPointOnSegment(p, a, b){
         let ab = vec3.sub(b, a);
@@ -123,29 +128,29 @@ class Triangle {
         let dca = vec3.length(vca);
 
         // 3. Zu Welcher Dreieckskante hat die Gerade den geringster Abstand 
-        let impuls;
-        if(dab < dbc && dab < dca)  impuls = vab;
-        else if(dbc < dca)          impuls = vbc;
-        else                        impuls = vca;
- 
         let contact;
         if(dab < dbc && dab < dca)  contact = new Contact(ip, vab, dab);
         else if(dbc < dca)          contact = new Contact(ip, vbc, dbc);
         else                        contact = new Contact(ip, vca, dca); 
+        //return contact;
 
+        let impuls;
+        if(dab < dbc && dab < dca)  impuls = vab;
+        else if(dbc < dca)          impuls = vbc;
+        else                        impuls = vca;
         // 4. Punkte verschieben so dass Kante am äußersten Punkt liegt
-        return contact;
-        corner1.add(impuls.scale(1+this.EPSILON));
-        corner2.add(impuls.scale(1+this.EPSILON)); 
+        impuls.scale(1+this.EPSILON);
+        corner1.add(impuls);
+        corner2.add(impuls); 
     }
 
     /**
      * @param {Triangle} t
      */
     resolveSoftTriangleCollision(t){
-        //this.resolveSoftPointCollision(t.a);
-        //this.resolveSoftPointCollision(t.b);
-        //this.resolveSoftPointCollision(t.c);
+        this.resolveSoftPointCollision(t.a);
+        this.resolveSoftPointCollision(t.b);
+        this.resolveSoftPointCollision(t.c);
 
         let c_ab = this.getEdgeEdgeContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
         let c_bc = this.getEdgeEdgeContact(t.b, t.c) || NaN;
@@ -153,12 +158,12 @@ class Triangle {
         let resolvingContact;
 
         if(c_ab.depth > c_bc && c_ab.depth > c_ca.depth) resolvingContact = c_ab
-        else if(c_bc.depth > c_ca.depth) resolvingContact = c_bc
-        else if(!isNaN(c_ca)) resolvingContact = c_ca     
+        else if(c_bc.depth > c_ca.depth)                 resolvingContact = c_bc
+        else if(!isNaN(c_ca))                            resolvingContact = c_ca     
         else return;
 
-        let tn = vec3.cross(vec3.sub(t.b, t.a), vec3.sub(t.c, t.a)).normalize();
-        let impuls = resolvingContact.normal.scale(resolvingContact.depth);
+        let tn = t.getClockwiseNormal().add(this.getClockwiseNormal()).normalize();
+        let impuls = tn.scale(resolvingContact.depth + this.EPSILON);
         t.a.add(impuls)
         t.b.add(impuls)
         t.c.add(impuls)

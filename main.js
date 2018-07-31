@@ -61,12 +61,12 @@ function initGL () {
 	- x, y, z als Array darstellen
 	- old als seperaten Punkt
 	*/
-	let cube = new Obj("modelsJson/cube.json", 'yellow');
-	let triangle = new Obj("modelsJson/triangle.json", 'green');
-	let	human = new Obj("modelsJson/human_806polys.json");
-	let	icosa = new Obj("modelsJson/icosa.json", 'green');
 	let	dummy = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let	sphere = new Sphere(1, 18, 18).translate(-1.5, 5, -1);
+	let cube = new Obj("models/cube.json", 'yellow');
+	let	human = new Obj("models/human_806polys.json");
+	let	icosa = new Obj("models/icosa.json", 'green');
+	let triangle = new Obj("models/triangleBig.json");
+	let	sphere = new Sphere(1, 18, 18).translate(-1.5, 5, 1.5);
 	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.3));
 	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
 	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
@@ -79,12 +79,12 @@ function initGL () {
 	towelTight.points[1560].pin();
 
 	var initialisationCallback = () => {
-		if(triangle.points) triangle.translate(-1.5, 3, 0);
+		if(triangle.points) triangle.translate(-.5, 1, -1);
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
 
-	objects = [dummy, towelTight, cube, icosa]
+	objects = [dummy, towelTight, cube, icosa, triangle]
 
 
 
