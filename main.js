@@ -23,9 +23,9 @@ loadTextResource("shader/phong.vs", function(text){
  * Main Application
  */
 var gl;
-var stats;
 var phongProgram;
 var basicProgram;
+var stats;
 
 var	lastTick = 0;
 var mouseDown = false;
@@ -105,9 +105,9 @@ function initGL () {
 		initialisationCallback()
 		let loadingText = document.getElementById("loadingText");
 		loadingText.parentNode.removeChild(loadingText);
+		canvas.style.display = "initial";
 		stats = new Stats();
 		document.body.appendChild(stats.dom);
-		canvas.style.display = "initial";
 		loop();
 	}
 
