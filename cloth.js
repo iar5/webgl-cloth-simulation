@@ -4,7 +4,7 @@ class Cloth{
         else if(stiffness < 0) stiffness = 0;
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
-        this.mass = mass || 3;
+        this.mass = mass || 5;
         this.geometry = null;
     }
     applyGeometry(geometry){
@@ -89,10 +89,11 @@ class Cloth{
             let p = this.geometry.points[i];
             if (p.pinned) continue;
 
-            let f = new Point(windX, -gravity*p.mass, windZ);
-            let v = vec3.sub(p, p.old).add(f).scale(drag);
-            p.old.set(p)
-            p.add(v)
+            let a = new vec3(windX, -gravity, windZ).scale(p.mass); // eigentlich a=f/m bzw. a=f* 1/m
+            let v = vec3.sub(p, p.old);
+
+            p.old.set(p);
+            p.add(v.add(a).scale(drag));
         }
     }
     _disctanceConstraint() {

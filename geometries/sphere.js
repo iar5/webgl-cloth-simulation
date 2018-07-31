@@ -6,7 +6,7 @@ class Sphere extends Geometry{
         this.numLongitudes = numLongitudes;
        
         this.offset = 0.01;
-        this.midPoint = new Point(0, 0, 0);
+        this.midPoint = new vec3(0, 0, 0);
 
         this._generateBufferData();
         this.points = this.generatePointsFromContinousArray(this._vertices)
@@ -45,7 +45,7 @@ class Sphere extends Geometry{
         }
     }
     translate(x, y, z){
-        this.midPoint.add(new Point(x,y,z))
+        this.midPoint.add(new vec3(x,y,z))
         return super.translate(x, y, z);
     }
     resolveSoftPointCollision(points){

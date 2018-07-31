@@ -42,7 +42,7 @@ class Obj extends Geometry {
             this.points = this.generatePointsFromContinousArray(this._vertices)
             this.normals = [];
             for(let i=0; i < this._normals.length; i+=3){
-                this.normals.push({x: this._normals[i], y: this._normals[i+1], z: this._normals[i+2]})
+                this.normals.push(new vec3(this._normals[i], this._normals[i+1], this._normals[i+2]))
             }
             this.triangles = [];
             for(let i=0; i < this._indices.length; i+=3){
@@ -57,9 +57,9 @@ class Obj extends Geometry {
     }
     resolveSoftTriangleCollision(softTriangles){
         for (let t of this.triangles) {
-            for (let toftTriangle of softTriangles) {
-                if(!t.testTrianglSphere(toftTriangle)) continue
-                t.resolveSoftTriangleCollision(toftTriangle);
+            for (let st of softTriangles) {
+                if(!t.testTrianglSphere(st)) continue
+                t.resolveSoftTriangleCollision(st);
             }
         }
     }

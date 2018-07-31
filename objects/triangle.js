@@ -1,15 +1,14 @@
 class Triangle {
     /**
-     * @param {Point} a Ecke 1
-     * @param {Point} b Ecke 2
-     * @param {Point} c Ecke 3
+     * @param {vec3} a Ecke 1
+     * @param {vec3} b Ecke 2
+     * @param {vec3} c Ecke 3
      */
     constructor(a, b, c){
         this.a = a;
         this.b = b;
         this.c = c;
         this.radius = Math.max(Math.max(vec3.sub(a,b).getLength(), vec3.sub(b,c).getLength()), vec3.sub(c,a).getLength())
-
         // VORBERECHNUNETE DATEN - Werden ungültig nach einer Rotation!
         this.EPSILON = 0.0001
         this.edge1 = vec3.sub(this.b, this.a)
@@ -22,28 +21,28 @@ class Triangle {
     /**
      * Testet ob Kollision überhaupt mlgich ist mit einer Bounding Sphere 
      * Neuberechnung von Catenoid wegen Transformationen der Punkte
-     * @param {Point} p 
+     * @param {vec3} p 
      * @returns {boolean}
      */
     testPointSphere(p){
-        return vec3.dist(p, this.getCatenoid()) < this.radius;
+        return vec3.dist(p, this.getCatenoid()) +this.EPSILON <= this.radius;
     } 
     testTrianglSphere(t){
-        return vec3.dist(t.getCatenoid(), this.getCatenoid()) < t.radius+this.radius;
+        return vec3.dist(t.getCatenoid(), this.getCatenoid()) +this.EPSILON <= t.radius+this.radius;
     }
     getCatenoid(){
         let a=this.a, b=this.b, c=this.c;
-        return new Point((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
+        return new vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
     }
 
     /**
      * Ericson S.128
-     * @param {Point} p Point
-     * @param {Point} a Segment Start
-     * @param {Point} b Segment End
-     * @returns {Point}
+     * @param {vec3} p Point
+     * @param {vec3} a Segment Start
+     * @param {vec3} b Segment End
+     * @returns {vec3}
      */
-    closestPointOnSegmen(p, a, b){
+    closestPointOnSegment(p, a, b){
         let ab = vec3.sub(b, a);
         let t = vec3.dot(vec3.sub(p,a),ab) / vec3.dot(ab,ab);
         if(t < 0) t = 0;
@@ -53,9 +52,9 @@ class Triangle {
 
     /**
      * MÖLLER-TRUMBORE Ray-Triangle Intersection Algorithmus
-     * @param {Point} o Ortsvektor des Strahles
+     * @param {vec3} o Ortsvektor des Strahles
      * @param {?} dir Als Richtungsvektor wird Lotgerade (dir = -n) genomen
-     * @param {Point} dir Eigener Richtungsvektor des Strahles
+     * @param {vec3} dir Eigener Richtungsvektor des Strahles
      * @returns {Number} Skalar t
      */
     moellerTrumbore(o, dir){
@@ -82,16 +81,15 @@ class Triangle {
     /**
      * Idee: Punkt hinter Schnittpunkt während alter noch davor (in dir Richtung) -> Durchdringung
      * Anderer Ansatz wäre Punkt im Objekt wenn Anzahl Schnittpunkte ungerade, dann Projektion nach außen
-     * @param {Point} p 
+     * @param {vec3} p 
      */
     resolveSoftPointCollision(p) { 
         let n = this.n, dir = vec3.scale(n, -1)
         let t = this.moellerTrumbore(p)
-
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
         if(t == null || t > 0) return false; 
-        let ip   = new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
-        let oldp = new Point(p.old.x,       p.old.y,       p.old.z)
+        let ip   = new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
+        let oldp = new vec3(p.old.x,       p.old.y,       p.old.z)
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
         if(vec3.dist(p, oldp) < vec3.dist(p, ip)) return false; 
         // 3. Auflösen
@@ -104,7 +102,7 @@ class Triangle {
      * 
      * @param {Edge} e Edge/Spring mit zwei Punkten p1 und p2
      */
-    resolveSoftLineCollision(corner1, corner2){
+    getEdgeEdgeContact(corner1, corner2){
         let a=this.a, b=this.b, c=this.c;
 
         // 1. Schnittpunkt EdgeRay-Triangele
@@ -112,43 +110,57 @@ class Triangle {
         let dir = vec3.normalize(vec3.sub(corner2, corner1));
         let t = this.moellerTrumbore(o, dir);
         if(t == null || Math.abs(t) > vec3.length(dir)) return;
-        let ip = new Point(o.x + t*dir.x, o.y + t*dir.y, o.z + t*dir.z)
-        // 2. Zu Welcher Dreieckskante geringster Abstand
-        let iab = this.closestPointOnSegmen(ip, a, b);
-        let ibc = this.closestPointOnSegmen(ip, b, c);
-        let ica = this.closestPointOnSegmen(ip, c, a);
+        let ip = new vec3(o.x + t*dir.x, o.y + t*dir.y, o.z + t*dir.z)
+        // 2. Schnittpunkt mit Dreieckskanten
+        let iab = this.closestPointOnSegment(ip, a, b);
+        let ibc = this.closestPointOnSegment(ip, b, c);
+        let ica = this.closestPointOnSegment(ip, c, a);
         let vab = vec3.sub(iab, ip);
         let vbc = vec3.sub(ibc, ip);
         let vca = vec3.sub(ica, ip);
         let dab = vec3.length(vab);
         let dbc = vec3.length(vbc);
         let dca = vec3.length(vca);
-        
-        let kv;
-        if(dab < dbc && dab < dca) kv = vab
-        else if(dbc < dca) kv = vbc  
-        else kv = vca
 
-        // 3. Punkte so verschieben, dass Kante am äußersten Punkt liegt
-        corner1.add(kv.scale(1+this.EPSILON));
-        corner2.add(kv.scale(1+this.EPSILON)); 
-        //corner1.old.set(corner1)
-        //corner2.old.set(corner2)     
+        // 3. Zu Welcher Dreieckskante hat die Gerade den geringster Abstand 
+        let impuls;
+        if(dab < dbc && dab < dca)  impuls = vab;
+        else if(dbc < dca)          impuls = vbc;
+        else                        impuls = vca;
+ 
+        let contact;
+        if(dab < dbc && dab < dca)  contact = new Contact(ip, vab, dab);
+        else if(dbc < dca)          contact = new Contact(ip, vbc, dbc);
+        else                        contact = new Contact(ip, vca, dca); 
+
+        // 4. Punkte verschieben so dass Kante am äußersten Punkt liegt
+        return contact;
+        corner1.add(impuls.scale(1+this.EPSILON));
+        corner2.add(impuls.scale(1+this.EPSILON)); 
     }
 
     /**
      * @param {Triangle} t
      */
     resolveSoftTriangleCollision(t){
-        let nn = vec3.cross(vec3.sub(t.b, t.a), vec3.sub(t.c, t.a)).normalize();
+        //this.resolveSoftPointCollision(t.a);
+        //this.resolveSoftPointCollision(t.b);
+        //this.resolveSoftPointCollision(t.c);
 
-        this.resolveSoftPointCollision(t.a);
-        this.resolveSoftPointCollision(t.b);
-        this.resolveSoftPointCollision(t.c);
+        let c_ab = this.getEdgeEdgeContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
+        let c_bc = this.getEdgeEdgeContact(t.b, t.c) || NaN;
+        let c_ca = this.getEdgeEdgeContact(t.c, t.a) || NaN;
+        let resolvingContact;
 
-        this.resolveSoftLineCollision(t.a, t.b);
-        this.resolveSoftLineCollision(t.b, t.c);
-        this.resolveSoftLineCollision(t.c, t.a);
+        if(c_ab.depth > c_bc && c_ab.depth > c_ca.depth) resolvingContact = c_ab
+        else if(c_bc.depth > c_ca.depth) resolvingContact = c_bc
+        else if(!isNaN(c_ca)) resolvingContact = c_ca     
+        else return;
 
+        let tn = vec3.cross(vec3.sub(t.b, t.a), vec3.sub(t.c, t.a)).normalize();
+        let impuls = resolvingContact.normal.scale(resolvingContact.depth);
+        t.a.add(impuls)
+        t.b.add(impuls)
+        t.c.add(impuls)
     }
 }
