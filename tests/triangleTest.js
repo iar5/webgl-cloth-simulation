@@ -1,6 +1,6 @@
 {
     /**
-     * (Sicht von oben)
+     * (Sicht von oben) - Dreieck mit Normale nach oben (+y)
      * 
      *            ∧ y 
      *            |
@@ -55,7 +55,7 @@
         console.assert(t == 5, "MoellerTrumbore: Strahl unter Dreieck, zeigt nach oben: t = " + t)
     }
 
-    /* Treffer auf der Kante*/
+    /* TEST: Treffer auf der Kante*/
     {
         //  ↑
         //   ▲ 
@@ -72,7 +72,8 @@
         let t = tri.moellerTrumbore(o, v)
         console.assert(t == 5, t)
     }
-    /* Keine Treffer */
+
+    /* TEST: Keine Treffer */
     {
         // ↑ 
         //   ▲ 
@@ -96,5 +97,13 @@
         let v = new vec3(-1, 0, 0);
         let t = tri.moellerTrumbore(o, v)
         console.assert(t == null, "Parallel vobei")
+    }
+    {
+        //   
+        // → ▲ 
+        let o = new vec3(5, 0, 0);
+        let v = new vec3(1, 0, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == null, "Parallel in der Ebene")
     }
 }

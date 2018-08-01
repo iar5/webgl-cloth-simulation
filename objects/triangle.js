@@ -85,14 +85,29 @@ class Triangle {
             pvec = vec3.cross(dir, edge2);
             det = vec3.dot(edge1, pvec); 
         }
-        if (-EPSILON < det && det < EPSILON) return null; // ray parallel zu Ebene
+        // det < 0 : Ray points away, negative t expected
+        // det > 0 : positive t expected
+        // det == 0 : Ray runs parallel to the plane of the triangle -> no t
+        if (-EPSILON < det && det < EPSILON) return null;
+
+        let inv_det = 1/det
         let tvec = vec3.sub(o, this.a);
+        let u = vec3.dot(tvec, pvec) * inv_det;
+        if (u < 0 || u > 1) return null;
+        let qvec = vec3.cross(tvec, edge1);
+        let w = vec3.dot(dir, qvec) * inv_det;
+        if (w < 0 || u + w > 1) return null;
+        return vec3.dot(edge2, qvec) * inv_det;
+
+        // Alte Version, mit der Tests nicht klappen und wegen det=0 irgendwo raus springt
+        // Nur für front-facing intersections (culling)
+        /*let tvec = vec3.sub(o, this.a);
         let u = vec3.dot(tvec, pvec);
         if (u < 0 || u > det) return null;
         let qvec = vec3.cross(tvec, edge1);
         let w = vec3.dot(dir, qvec);
         if (w < 0 || u + w > det) return null;
-        return vec3.dot(edge2, qvec) / det;
+        return vec3.dot(edge2, qvec) / det;*/
     }
 
     /**
