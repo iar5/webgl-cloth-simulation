@@ -55,7 +55,16 @@
         console.assert(t == 5, "MoellerTrumbore: Strahl unter Dreieck, zeigt nach oben: t = " + t)
     }
 
-    /* TEST: Treffer auf der Kante*/
+    /**
+     * Test: Treffer auf Kante
+     */       {
+        //  ↓
+        //   ▲ 
+        let o = new vec3(2, 5, 2);
+        let v = new vec3(0, -1, 0);
+        let t = tri.moellerTrumbore(o, v)
+        console.assert(t == 5, t)
+    }
     {
         //  ↑
         //   ▲ 
@@ -64,20 +73,14 @@
         let t = tri.moellerTrumbore(o, v)
         console.assert(t == -5, "MoellerTrumbore: Test an der Kante, Strahl über Dreieck, zeigt nach oben: t = " + t)
     }
-    {
-        //  ↓
-        //   ▲ 
-        let o = new vec3(2, 5, 2);
-        let v = new vec3(0, -1, 0);
-        let t = tri.moellerTrumbore(o, v)
-        console.assert(t == 5, t)
-    }
 
-    /* TEST: Keine Treffer */
+    /**
+     * Test: Keine Treffer
+     */    
     {
         // ↑ 
         //   ▲ 
-        let o = new vec3(2.1, 5, 2);
+        let o = new vec3(2.001, 5, 2);
         let v = new vec3(0, 1, 0);
         let t = tri.moellerTrumbore(o, v)
         console.assert(t == null, "Senkrecht vorbei")
@@ -105,5 +108,15 @@
         let v = new vec3(1, 0, 0);
         let t = tri.moellerTrumbore(o, v)
         console.assert(t == null, "Parallel in der Ebene")
+    }
+
+    /**
+     * getSegmentContact Tests
+     */
+    {
+        let a = new vec3(-1, -1, 0);
+        let b = new vec3(1, 1, 0);
+        let contact = tri.getSegmentContact(a, b)
+        console.assert(vec3.equals(contact.point, new vec3(0,0,0)))
     }
 }

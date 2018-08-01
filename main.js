@@ -67,9 +67,9 @@ function initGL () {
 	let	icosa = new Obj("models/icosa.json", 'green');
 	let triangle = new Obj("models/triangleBig.json");
 	let	sphere = new Sphere(1, 18, 18).translate(-1.5, 5, 1.5);
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.3));
-	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
-	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
+	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
+	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth());
 
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
 	towel.points[380].pin();
@@ -95,7 +95,7 @@ function initGL () {
 			counter--;
 			if(counter == 0) start();
 		}
-	}(objects.length)
+	}(objects.length);
 
 	objects.forEach(o => {
 		o.initGl(gl, starter)

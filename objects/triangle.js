@@ -48,21 +48,6 @@ class Triangle {
     }
 
     /**
-     * Ericson S.128
-     * @param {vec3} p Point
-     * @param {vec3} a Segment Start
-     * @param {vec3} b Segment End
-     * @returns {vec3} closets point to segment
-     */
-    closestPointOnSegment(p, a, b){
-        let ab = vec3.sub(b, a);
-        let t = vec3.dot(vec3.sub(p,a),ab) / vec3.dot(ab,ab);
-        if(t < 0) t = 0;
-        if(t > 1) t = 1;
-        return vec3.add(a, vec3.scale(ab, t)) 
-    }
-
-    /**
      * MÖLLER-TRUMBORE Ray-Triangle Intersection Algorithmus
      * @param {vec3} o Ortsvektor des Strahles
      * @param {vec3|?} dir Richtungsvektor des Strahles | Richtungsvektor ist Lotgerade (dir = -n)
@@ -89,7 +74,6 @@ class Triangle {
         // det > 0 : positive t expected
         // det == 0 : Ray runs parallel to the plane of the triangle -> no t
         if (-EPSILON < det && det < EPSILON) return null;
-
         let inv_det = 1/det
         let tvec = vec3.sub(o, this.a);
         let u = vec3.dot(tvec, pvec) * inv_det;
@@ -98,102 +82,117 @@ class Triangle {
         let w = vec3.dot(dir, qvec) * inv_det;
         if (w < 0 || u + w > 1) return null;
         return vec3.dot(edge2, qvec) * inv_det;
-
-        // Alte Version, mit der Tests nicht klappen und wegen det=0 irgendwo raus springt
-        // Nur für front-facing intersections (culling)
-        /*let tvec = vec3.sub(o, this.a);
-        let u = vec3.dot(tvec, pvec);
-        if (u < 0 || u > det) return null;
-        let qvec = vec3.cross(tvec, edge1);
-        let w = vec3.dot(dir, qvec);
-        if (w < 0 || u + w > det) return null;
-        return vec3.dot(edge2, qvec) / det;*/
     }
 
     /**
      * Idee: Punkt hinter Schnittpunkt während alter noch davor (in dir Richtung) -> Durchdringung
-     * Anderer Ansatz wäre Punkt im Objekt wenn Anzahl Schnittpunkte ungerade, dann Projektion nach außen
+     * Wird (bis jetzt) nur auf statischen Dreiecken aufgerufen, daher vorberechnete Daten
      * @param {vec3} p 
      */
-    resolveSoftPointCollision(p) { 
-        let dir  = vec3.scale(this._n, -1);
-        let t = this.moellerTrumbore(p)
+    getContinousPointContact(p) { 
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
-        if(t == null || t > this.EPSILON) return false; 
+        let t = this.moellerTrumbore(p) // not needed to pass over dir, its alredy precalculated in there 
+        if(t == null || t > 0) return null; 
+        let dir  = vec3.scale(this._n, -1);
         let ip   = new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
-        let oldp = new vec3(p.old.x,       p.old.y,       p.old.z)
+
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
-        if(vec3.dist(p, oldp) < vec3.dist(p, ip)) return false; 
-        // 3. Auflösen
-        ip.scale(1+this.EPSILON);
-        p.set(ip);
-        p.old.set(ip);
+        if(vec3.dist(p, p.old) < vec3.dist(p, ip)) return null; 
+        return new Contact(ip, vec3.dist(p, ip), vec3.sub(ip, p))
     }  
+
+    /**
+     * Ericson S.128
+     * @param {vec3} p Point
+     * @param {vec3} a Segment Start
+     * @param {vec3} b Segment End
+     * @returns {vec3} closets point to segment
+     */
+    closestPointOnSegment(p, a, b){
+        let ab = vec3.sub(b, a);
+        let t = vec3.dot(vec3.sub(p,a),ab) / vec3.dot(ab,ab);
+        if(t < 0) t = 0;
+        if(t > 1) t = 1;
+        return vec3.add(a, vec3.scale(ab, t)) 
+    }
 
     /**
      * 
      * @param {Edge} e Edge/Spring mit zwei Punkten p1 und p2
+     * @returns {Contact} 
      */
-    getEdgeEdgeContact(corner1, corner2){
-        let a=this.a, b=this.b, c=this.c;
-
-        // 1. Schnittpunkt EdgeRay-Triangele
+    getSegmentContact(corner1, corner2){
+        // 1. Schnittpunkt des Segments mit dem Dreieck berechnne
         let o = corner1
-        let dir = vec3.normalize(vec3.sub(corner2, corner1));
+        let v = vec3.sub(corner2, corner1)
+        let dir = vec3.normalize(v);
         let t = this.moellerTrumbore(o, dir);
-        if(t == null || Math.abs(t) > vec3.length(dir)) return;
-        let ip = new vec3(o.x + t*dir.x, o.y + t*dir.y, o.z + t*dir.z)
-        // 2. Schnittpunkt mit Dreieckskanten
-        let iab = this.closestPointOnSegment(ip, a, b);
-        let ibc = this.closestPointOnSegment(ip, b, c);
-        let ica = this.closestPointOnSegment(ip, c, a);
-        let vab = vec3.sub(iab, ip);
-        let vbc = vec3.sub(ibc, ip);
-        let vca = vec3.sub(ica, ip);
+
+        // 2. Liegt Schnittpunkt außerhalb Segments?
+        if(t == null || Math.abs(t) > vec3.length(v)) return null;
+        let eip = new vec3(o.x + t*dir.x, o.y + t*dir.y, o.z + t*dir.z)
+        
+        // 3. Nähester Punkt an jeder Dreieckskanten
+        let iab = this.closestPointOnSegment(eip, this.a, this.b);
+        let ibc = this.closestPointOnSegment(eip, this.b, this.c);
+        let ica = this.closestPointOnSegment(eip, this.c, this.a);
+        let vab = vec3.sub(iab, eip);
+        let vbc = vec3.sub(ibc, eip);
+        let vca = vec3.sub(ica, eip);
         let dab = vec3.length(vab);
         let dbc = vec3.length(vbc);
         let dca = vec3.length(vca);
 
-        // 3. Zu Welcher Dreieckskante hat die Gerade den geringster Abstand 
-        let contact;
-        if(dab < dbc && dab < dca)  contact = new Contact(ip, vab, dab);
-        else if(dbc < dca)          contact = new Contact(ip, vbc, dbc);
-        else                        contact = new Contact(ip, vca, dca); 
-        return contact;
-
-        // 3.1 So wie Vorher
-        let impuls;
-        if(dab < dbc && dab < dca)  impuls = vab;
-        else if(dbc < dca)          impuls = vbc;
-        else                        impuls = vca;
-        // 4. Punkte verschieben so dass Kante am äußersten Punkt liegt
-        impuls.scale(1+this.EPSILON);
-        corner1.add(impuls);
-        corner2.add(impuls); 
+        // 4. Zu Welcher Dreieckskante hat der Punkt den geringster Abstand 
+        if(dab < dbc && dab < dca)  return new Contact(eip, vab, dab);
+        else if(dbc < dca)          return new Contact(eip, vbc, dbc);
+        else                        return new Contact(eip, vca, dca); 
     }
 
     /**
      * @param {Triangle} t
      */
     resolveSoftTriangleCollision(t){
-        this.resolveSoftPointCollision(t.a);
-        this.resolveSoftPointCollision(t.b);
-        this.resolveSoftPointCollision(t.c);
+        // 1. Point-Triangle Intersection
+        let c_a = this.getContinousPointContact(t.a);
+        let c_b = this.getContinousPointContact(t.b);
+        let c_c = this.getContinousPointContact(t.c);
 
-        let c_ab = this.getEdgeEdgeContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
-        let c_bc = this.getEdgeEdgeContact(t.b, t.c) || NaN;
-        let c_ca = this.getEdgeEdgeContact(t.c, t.a) || NaN;
+        if(c_a) t.a.set(vec3.scale(c_a.point, 1+this.EPSILON))
+        if(c_b) t.b.set(vec3.scale(c_b.point, 1+this.EPSILON))
+        if(c_c) t.c.set(vec3.scale(c_c.point, 1+this.EPSILON))
+        if(c_a) t.a.old.set(vec3.scale(c_a.point, 1+this.EPSILON))
+        if(c_b) t.b.old.set(vec3.scale(c_b.point, 1+this.EPSILON))
+        if(c_c) t.c.old.set(vec3.scale(c_c.point, 1+this.EPSILON))
+
+
+        // 2. Edge-Triangle Intersection
+        let c_ab = this.getSegmentContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
+        let c_bc = this.getSegmentContact(t.b, t.c) || NaN;
+        let c_ca = this.getSegmentContact(t.c, t.a) || NaN;
         let resolvingContact;
+        let resolvingEdge1;
+        let resolvingEdge2;
 
-        if(c_ab.depth > c_bc && c_ab.depth > c_ca.depth) resolvingContact = c_ab
-        else if(c_bc.depth > c_ca.depth)                 resolvingContact = c_bc
-        else if(!isNaN(c_ca))                            resolvingContact = c_ca     
+        if(c_ab.depth > c_bc && c_ab.depth > c_ca.depth) {
+            resolvingEdge1 = t.a;
+            resolvingEdge2 = t.b;
+            resolvingContact = c_ab
+        }
+        else if(c_bc.depth > c_ca.depth)  {
+            resolvingEdge1 = t.b;
+            resolvingEdge2 = t.c;
+            resolvingContact = c_bc
+        }              
+        else if(!isNaN(c_ca)) {
+            resolvingEdge1 = t.c;
+            resolvingEdge2 = t.a;
+            resolvingContact = c_ca     
+        }                           
         else return;
 
-        let tn = t.getCCNormal().add(this.getCCNormal()).normalize();
-        let impuls = resolvingContact.normal.scale(resolvingContact.depth + this.EPSILON);
-        t.a.add(impuls)
-        t.b.add(impuls)
-        t.c.add(impuls)
+        let impuls = vec3.scale(resolvingContact.normal, resolvingContact.depth + this.EPSILON);
+        resolvingEdge1.add(impuls)
+        resolvingEdge2.add(impuls)
     }
 }

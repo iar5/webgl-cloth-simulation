@@ -1,17 +1,18 @@
 class Cloth{
     constructor(stiffness, mass) {
         if (!stiffness) stiffness = 0.3;
-        else if(stiffness < 0) stiffness = 0;
+        else if(stiffness < 0) stiffness = 0.01;
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
         this.mass = mass || 5;
         this.geometry = null;
     }
     applyGeometry(geometry){
-        if(!geometry instanceof Towel) throw Error("geometry not suitable for cloth simulation")
+        if(!geometry instanceof Towel) throw Error("Geometry not suitable for cloth simulation")
         this.geometry = geometry;
         this._setupSpringMassSystem();
     }
+
     _setupSpringMassSystem(){
         if(!this.geometry instanceof Towel) throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
         let towel = this.geometry;
@@ -63,7 +64,6 @@ class Cloth{
                 }
             }
         }
-        // CounterClockwise
         let triangles = this.triangles = [];
         for (let y = 0; y < amountY; y++) {
             for (let x = 0; x < amountX; x++) {
@@ -75,15 +75,17 @@ class Cloth{
         }
     
     }
-    /*
+
+    /** 
      * SIMULATION LOOP 
      */
-    updategeometry(){
+    updateGeometry(){
         this._verletIntegration();
         this._disctanceConstraint();
         this._collisionConstraint(); 
         this.geometry.compileVerticesFromPoints();
     }
+
     _verletIntegration() {
         for (let i=0; i < this.geometry.points.length; i++) {
             let p = this.geometry.points[i];
@@ -96,9 +98,14 @@ class Cloth{
             p.add(v.add(a).scale(drag));
         }
     }
+
+    /**
+     * this.stiffnes entpsircht Prozentangabe wie viel sich die Federn maximal ausdehnen dürfen
+     * Abbruch wenn alle Korrekturen geringer sind als die zugelassene Elastizität (oder Maximalanzahl der Wiederholungen erreicht -> geht stark auf die Performance)
+     */
     _disctanceConstraint() {
         let stiffnesreached = false;
-        for (var i=0; i<50 && !stiffnesreached; i++) {
+        for (var i=0; i<100 && !stiffnesreached; i++) {
             stiffnesreached = true;
             for (var j=0; j < this.springs.length; j++) {
                 let s = this.springs[j];
@@ -110,17 +117,15 @@ class Cloth{
                 
                 if (!s.p0.pinned) s.p0.add(offset)
                 if (!s.p1.pinned) s.p1.sub(offset) 
-    
-                // Abbruch wenn alle Korrekturen geringer sind als die zugelassene Elastizität
-                if(force / dist >= this.stiffness) stiffnesreached = false;
+                if(force / dist >= this.stiffness) stiffnesreached = false; 
             }
         }   
     }
+
     _collisionConstraint() {
-        // With Bottom
+        // Bottom Collision
         let friction = .5;
         let bounce = .9;     
-
         for (let p of this.geometry.points) {
             if (p.y < 0) {
                 p.y = 0;
@@ -129,12 +134,11 @@ class Cloth{
                 p.old.z = p.z + (p.z-p.old.z) * friction;
             }
         }
-        // With Objects
+        // Object Collision
         for(let o of objects) {
             if(o instanceof Towel) continue;
             else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.geometry.points);
             else if(o instanceof Obj) o.resolveSoftTriangleCollision(this.triangles);  
-
             //else if(o instanceof Obj) o.checkIfPointIsInside(this.geometry.points);  
         }  
     } 

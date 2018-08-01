@@ -86,7 +86,7 @@ class Geometry{
         return result
     }
     update(){
-        if(this.cloth) this.cloth.updategeometry();
+        if(this.cloth) this.cloth.updateGeometry();
         if(this.updater) this.updater();
     }
     /**
