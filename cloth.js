@@ -133,9 +133,9 @@ class Cloth{
         for(let o of objects) {
             if(o instanceof Towel) continue;
             else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.geometry.points);
-            else if(o.collisionTest) o.collisionTest(this.geometry.points);  
-            else o.resolveSoftTriangleCollision(this.triangles);  
+            else if(o instanceof Obj) o.resolveSoftTriangleCollision(this.triangles);  
 
+            //else if(o instanceof Obj) o.checkIfPointIsInside(this.geometry.points);  
         }  
     } 
 }

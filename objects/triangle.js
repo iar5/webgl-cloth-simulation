@@ -191,7 +191,7 @@ class Triangle {
         else return;
 
         let tn = t.getCCNormal().add(this.getCCNormal()).normalize();
-        let impuls = tn.scale(resolvingContact.depth + this.EPSILON);
+        let impuls = resolvingContact.normal.scale(resolvingContact.depth + this.EPSILON);
         t.a.add(impuls)
         t.b.add(impuls)
         t.c.add(impuls)
