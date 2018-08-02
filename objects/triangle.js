@@ -9,7 +9,7 @@ class Triangle {
         this.b = b;
         this.c = c;
         // VORBERECHNUNETE DATEN - Nur für statische Objekte!! (Ohne Roatation, Federn, o.Ä.)
-        this.EPSILON = 0.0001
+        this.EPSILON = 0.001
         this._edge1 = vec3.sub(this.b, this.a)
         this._edge2 = vec3.sub(this.c, this.a)
         this._n = vec3.normalize(vec3.cross(this._edge1, this._edge2))
@@ -39,7 +39,7 @@ class Triangle {
     }
 
     /**
-     * 
+     * Counter clockwise normal calculation
      */
     getCCNormal(){
         this.edge1 = vec3.sub(this.b, this.a)
@@ -89,7 +89,7 @@ class Triangle {
      * Wird (bis jetzt) nur auf statischen Dreiecken aufgerufen, daher vorberechnete Daten
      * @param {vec3} p 
      */
-    getContinousPointContact(p) { 
+    resolveContinousPointCollision(p) { 
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
         let t = this.moellerTrumbore(p) // not needed to pass over dir, its alredy precalculated in there 
         if(t == null || t > 0) return null; 
@@ -98,7 +98,8 @@ class Triangle {
 
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
         if(vec3.dist(p, p.old) < vec3.dist(p, ip)) return null; 
-        return new Contact(ip, vec3.dist(p, ip), vec3.sub(ip, p))
+
+        p.set(vec3.scale(ip, 1+this.EPSILON))
     }  
 
     /**
@@ -152,21 +153,9 @@ class Triangle {
     /**
      * @param {Triangle} t
      */
-    resolveSoftTriangleCollision(t){
-        // 1. Point-Triangle Intersection
-        let c_a = this.getContinousPointContact(t.a);
-        let c_b = this.getContinousPointContact(t.b);
-        let c_c = this.getContinousPointContact(t.c);
-
-        if(c_a) t.a.set(vec3.scale(c_a.point, 1+this.EPSILON))
-        if(c_b) t.b.set(vec3.scale(c_b.point, 1+this.EPSILON))
-        if(c_c) t.c.set(vec3.scale(c_c.point, 1+this.EPSILON))
-        if(c_a) t.a.old.set(vec3.scale(c_a.point, 1+this.EPSILON))
-        if(c_b) t.b.old.set(vec3.scale(c_b.point, 1+this.EPSILON))
-        if(c_c) t.c.old.set(vec3.scale(c_c.point, 1+this.EPSILON))
-
-
-        // 2. Edge-Triangle Intersection
+    /*resolveSoftTriangleCollision(t){
+        return;
+        // Edge-Triangle Intersection
         let c_ab = this.getSegmentContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
         let c_bc = this.getSegmentContact(t.b, t.c) || NaN;
         let c_ca = this.getSegmentContact(t.c, t.a) || NaN;
@@ -194,5 +183,5 @@ class Triangle {
         let impuls = vec3.scale(resolvingContact.normal, resolvingContact.depth + this.EPSILON);
         resolvingEdge1.add(impuls)
         resolvingEdge2.add(impuls)
-    }
+    }*/
 }

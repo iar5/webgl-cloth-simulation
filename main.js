@@ -66,9 +66,9 @@ function initGL () {
 	let	human = new Obj("models/human_806polys.json");
 	let	icosa = new Obj("models/icosa.json", 'green');
 	let triangle = new Obj("models/triangleBig.json");
-	let	sphere = new Sphere(1, 18, 18).translate(-1.5, 5, 1.5);
+	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -1);
 	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
-	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
+	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
 	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth());
 
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
@@ -83,8 +83,7 @@ function initGL () {
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
-
-	objects = [dummy, towelTight, cube, icosa, triangle]
+	objects = [towelTight, cube, triangle, sphere]
 
 
 
@@ -158,6 +157,7 @@ function initGL () {
 		gl.useProgram(basicProgram);
 		bindAttribute(basicProgram, "vertexPositionAttribute", "vertexPosition");
 		bindAttribute(basicProgram, "vertexColorAttribute", "vertexColor");
+		bindAttribute(basicProgram, "vertexNormalAttribute", "vertexNormal");
 		basicProgram.projMatrixUniform = gl.getUniformLocation(basicProgram, "projectionMatrix");
 		basicProgram.mvMatrixUniform = gl.getUniformLocation(basicProgram, "mvMatrix");
 

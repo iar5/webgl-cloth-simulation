@@ -51,8 +51,9 @@ class Sphere extends Geometry{
     resolveSoftPointCollision(points){
         let midPoint = this.midPoint
         for(let p of points){
-            if(vec3.dist(p, midPoint) < this.radius + this.EPSILON) {
-                let newp = vec3.add(midPoint, vec3.scale(vec3.normalize({x: p.x - midPoint.x, y: p.y - midPoint.y, z: p.z - midPoint.z}), this.radius + this.EPSILON));
+            if(vec3.dist(p, midPoint) < this.radius+this.EPSILON) {
+                let impuls = vec3.scale(new vec3(p.x-midPoint.x, p.y-midPoint.y, p.z-midPoint.z).normalize(), this.radius+this.EPSILON)
+                let newp = vec3.add(midPoint, impuls);
                 p.old.set(p)
                 p.set(newp)
             }

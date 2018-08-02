@@ -47,6 +47,9 @@ class Towel extends Geometry{
                 }
             }
         }
+        this._normals = new Array(this._vertices.length)
+        this._normals.fill(0)
+
         this._colors = [];
         for(let i=0; i<this._vertices.length/3; i++){
             this._colors.push(.1, .1, .1, 1)

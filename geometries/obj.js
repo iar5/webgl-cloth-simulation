@@ -55,6 +55,13 @@ class Obj extends Geometry {
             super.initGl(gl, callback)
         })
     }
+    resolveSoftPointCollision(points){
+        for (let t of this.triangles) {
+            for(let p of points){
+                t.resolveContinousPointCollision(p)
+            }
+        }
+    }
     resolveSoftTriangleCollision(softTriangles){
         for (let t of this.triangles) {
             for (let st of softTriangles) {
@@ -71,8 +78,7 @@ class Obj extends Geometry {
                 let t = tri.moellerTrumbore(p, dir);
                 if(t != null && t > 0) intersections.push(new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
             }  
-            // Bei ungerader Schnittpunktanzahl und geschlossenem Objekt -> Punkt befindet sich innerhalb des Objektes
-            // Planares Dreieck Obj davon ausschließen
+            // Bei ungerader Schnittpunktanzahl und geschlossenem Objekt -> Punkt befindet sich innerhalb des Objektes (Planares Dreieck Obj davon ausschließen)
             if(this.triangles.length>1 && intersections.length % 2 == 1) console.log(this.src, intersections.length);
         }
     } 
