@@ -97,9 +97,10 @@ class Triangle {
         let ip   = new vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
-        if(vec3.dist(p, p.old) < vec3.dist(p, ip)) return null; 
-
-        p.set(vec3.scale(ip, 1+this.EPSILON))
+        if(vec3.dist(p, ip) > vec3.dist(p, p.old)) return null; 
+        let newp = vec3.add(ip, vec3.scale(this._n, 0.02))
+        p.set(newp)
+        p.old.set(newp)
     }  
 
     /**

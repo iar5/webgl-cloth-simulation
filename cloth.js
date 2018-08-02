@@ -105,7 +105,7 @@ class Cloth{
      */
     _disctanceConstraint() {
         let stiffnesreached = false;
-        for (var i=0; i<100 && !stiffnesreached; i++) {
+        for (var i=0; i<50 && !stiffnesreached; i++) {
             stiffnesreached = true;
             for (var j=0; j < this.springs.length; j++) {
                 let s = this.springs[j];
@@ -119,6 +119,7 @@ class Cloth{
                 if (!s.p1.pinned) s.p1.sub(offset) 
                 if(force / dist >= this.stiffness) stiffnesreached = false; 
             }
+            if(i==49) console.log("Maximum stiff iteration number reached")
         }   
     }
 

@@ -3,12 +3,12 @@ class Particle extends vec3{
         if(z == undefined){
             let p = x;
             super(p.x, p.y, p.z)
-            this.mass = y;
+            this.mass = y || 0.111;
             this.old = new vec3(p.x, p.y, p.z)
         }
         else{
             super(x, y, z)
-            this.mass = mass;
+            this.mass = mass || 0.111;
             this.old = new vec3(x, y, z)
         }
         this.pinned = false;

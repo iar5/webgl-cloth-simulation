@@ -11,7 +11,8 @@ class Obj extends Geometry {
         super(phongProgram, gl.TRIANGLES)
         this.src = src;
 
-        if(color == 'red') this.color = [1, 0, 0, 1]
+        if(color instanceof Array) this.color = color;
+        else if(color == 'red') this.color = [1, 0, 0, 1]
         else if(color == 'green') this.color = [0, 1, 0, 1]
         else if(color == 'blue') this.color = [0, 0, 1, 1]
         else if(color == 'yellow') this.color = [1, 1, 0, 1]

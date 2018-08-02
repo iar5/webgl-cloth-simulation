@@ -53,24 +53,20 @@ var camera = {
 function initGL () {	
 	gl = canvas.getContext("experimental-webgl");
 	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	initShaders();
 	
+	// ----------------- Scene Start ------------------ //
 
-	// ----------------- Scene ------------------ //
-	/* IMPROVEMENTS
-	- x, y, z als Array darstellen
-	- old als seperaten Punkt
-	*/
-	let	dummy = new Sphere(0,0,0); // damit towel als alleiniges Objekt gezeichnet werden kann. siehe problem in draw()
-	let cube = new Obj("models/cube.json", 'yellow');
+	let cube = new Obj("models/cube.json", [1, 0, 0, .4]);
 	let	human = new Obj("models/human_806polys.json");
-	let	icosa = new Obj("models/icosa.json", 'green');
+	let	icosa = new Obj("models/icosa.json", [0, 1, 0, .6]);
 	let triangle = new Obj("models/triangleBig.json");
-	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -1);
+	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -2);
 	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
-	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0));
-	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth());
-
+	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
+	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
 	towel.points[380].pin();
 	towel.points[399].pin();
@@ -83,11 +79,13 @@ function initGL () {
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
-	objects = [towelTight, cube, triangle, sphere]
+	objects = [towelTighter, cube, triangle, sphere, icosa]
 
 
 
+	
 	// ----------------- Scene End ------------------ //
+
 	var starter = function(count){
 		var counter = count;
 		return function(){
@@ -148,7 +146,6 @@ function initGL () {
 		gl.shaderSource(fshader, fragmentShaderCode);
 		gl.compileShader(fshader);
 		gl.attachShader(program, fshader);
-		
 		gl.linkProgram(program);
 		return program;
 	}
@@ -173,7 +170,6 @@ function initGL () {
 		program[programAttributeName] = gl.getAttribLocation(program, attributeName);
 		gl.enableVertexAttribArray(program[programAttributeName]);
 	}
-
 
 	// ---------------- Mouse controls ------------------- //
 	/*
