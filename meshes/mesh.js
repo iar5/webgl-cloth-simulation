@@ -1,4 +1,4 @@
-class Geometry{
+class Mesh{
     constructor(program, drawMode) {
         this.program = program;
         this.drawMode = drawMode;
@@ -60,7 +60,7 @@ class Geometry{
     generatePointsFromContinousArray(arr){
         let result = []
         for(let i = 0; i < arr.length; i+=3){
-            result.push(new vec3(arr[i], arr[i+1], arr[i+2]))
+            result.push(new Vec3(arr[i], arr[i+1], arr[i+2]))
         }
         return result
     }
@@ -78,7 +78,7 @@ class Geometry{
      * TODO Normalen mit rotieren 
      */
     translate(x, y, z){
-        let temp = new vec3(x, y, z)
+        let temp = new Vec3(x, y, z)
         this.points.forEach(pos => {
             pos.add(temp)
             if(pos.old) pos.old.add(temp)

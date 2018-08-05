@@ -39,8 +39,8 @@ mat4.identity(rotationMatrix);
 
 var drag = 0.95;      
 var gravity = 0.981; 
-var windX = 0.0000001;
-var windZ = 0.0000001;
+var windX = 0.000001;
+var windZ = 0.000001;
 
 var objects;
 var camera = {
@@ -59,10 +59,10 @@ function initGL () {
 	
 	// ----------------- Scene Start ------------------ //
 
-	let cube = new Obj("models/cube.json", [1, 0, 0, .4]);
+	let cube = new Obj("geometries/cube.json", [1, 0, 0, .6]);
 	let	human = new Obj("models/human_806polys.json");
-	let	icosa = new Obj("models/icosa.json", [0, 1, 0, .6]);
-	let triangle = new Obj("models/triangleBig.json");
+	let	icosa = new Obj("geometries/icosa.json", [0, 1, 0, .6]);
+	let triangle = new Obj("geometries/triangleBig.json");
 	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -2);
 	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
 	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
@@ -79,7 +79,7 @@ function initGL () {
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
-	objects = [towelTighter, cube, triangle, sphere, icosa]
+	objects = [towelTight, cube, triangle, sphere, icosa]
 
 
 

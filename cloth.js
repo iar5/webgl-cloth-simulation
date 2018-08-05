@@ -8,13 +8,13 @@ class Cloth{
         this.geometry = null;
     }
     applyGeometry(geometry){
-        if(!geometry instanceof Towel) throw Error("Geometry not suitable for cloth simulation")
+        if(!geometry instanceof Towel) throw Error("Mesh not suitable for cloth simulation")
         this.geometry = geometry;
         this._setupSpringMassSystem();
     }
 
     _setupSpringMassSystem(){
-        if(!this.geometry instanceof Towel) throw new Error("Cloth für nicht Towel Objekte noch nicht ausimplementiert")
+        if(!this.geometry instanceof Towel) throw new Error("Cloth nur für Towel Objekte implementiert (Rechtecksmesh)")
         let towel = this.geometry;
         let points = towel.points;
         let amountY = towel.amountY, amountX = towel.amountX;
@@ -35,12 +35,12 @@ class Cloth{
                 if (x+1 < amountX) {
                     let p0 = points[y*amountX + x],
                         p1 = points[y*amountX + x+1];
-                    springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
                     }
                 if (y+1 < amountY) {
                     let p0 = points[y*amountX + x],
                         p1 = points[(y+1)*amountX + x];
-                    springs.push(new Spring(p0, p1, vec3.dist(p0, p1), structuralStrength));
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
                     }
                 /* shear springs */
                 if (x+1 < amountX && y+1 < amountY) {
@@ -48,19 +48,19 @@ class Cloth{
                         p1 = points[(y+1)*amountX + x+1],
                         p2 = points[y*amountX + x+1],
                         p3 = points[(y+1)*amountX + x];
-                    springs.push(new Spring(p0, p1, vec3.dist(p0, p1), shearStrength));
-                    springs.push(new Spring(p2, p3, vec3.dist(p2, p3), shearStrength));
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), shearStrength));
+                    springs.push(new Spring(p2, p3, Vec3.dist(p2, p3), shearStrength));
                 }
                 /* bend springs */
                 if(x+2 < amountX) {
                     let p0 = points[y*amountX + x],
                         p1 = points[y*amountX + x+2];
-                    springs.push(new Spring(p0, p1, vec3.dist(p0, p1), bendStrength));
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
                     }
                 if(y+2 < amountY) {
                     let p0 = points[y*amountX + x],
                         p1 = points[(y+2)*amountX + x];
-                    springs.push(new Spring(p0, p1, vec3.dist(p0, p1), bendStrength));
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
                 }
             }
         }
@@ -91,8 +91,8 @@ class Cloth{
             let p = this.geometry.points[i];
             if (p.pinned) continue;
 
-            let a = new vec3(windX, -gravity, windZ).scale(p.mass); // eigentlich a=f/m bzw. a=f* 1/m
-            let v = vec3.sub(p, p.old);
+            let a = new Vec3(windX, -gravity, windZ).scale(p.mass); // eigentlich a=f/m bzw. a=f* 1/m
+            let v = Vec3.sub(p, p.old);
 
             p.old.set(p);
             p.add(v.add(a).scale(drag));
@@ -110,10 +110,10 @@ class Cloth{
             for (var j=0; j < this.springs.length; j++) {
                 let s = this.springs[j];
 
-                let d = vec3.sub(s.p1, s.p0);
-                let dist = vec3.length(d);
+                let d = Vec3.sub(s.p1, s.p0);
+                let dist = Vec3.length(d);
                 let force = s.strength * (dist - s.length); 
-                let offset = vec3.scale(vec3.normalize(d), force/2)
+                let offset = Vec3.scale(Vec3.normalize(d), force/2)
                 
                 if (!s.p0.pinned) s.p0.add(offset)
                 if (!s.p1.pinned) s.p1.sub(offset) 

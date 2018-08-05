@@ -1,9 +1,9 @@
-class Plane extends Geometry{
+class Plane extends Mesh{
     constructor(width, depth) {
         super(phongProgram, gl.TRIANGLES)
         this.width = width | 1;
         this.depth = depth | 1;
-        this.midPoint = new vec3(0, 0, 0);
+        this.midPoint = new Vec3(0, 0, 0);
 
         this._generateBufferData();
         this.points = this.generatePointsFromContinousArray(this._vertices)
@@ -36,7 +36,7 @@ class Plane extends Geometry{
         }
     }
     translate(x, y, z){
-        this.midPoint.add(new vec3(x,y,z))
+        this.midPoint.add(new Vec3(x,y,z))
         return super.translate(x, y, z);
     }
     resolveSoftPointCollision(points){
