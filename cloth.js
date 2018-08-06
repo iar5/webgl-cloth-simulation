@@ -4,28 +4,30 @@ class Cloth{
         else if(stiffness < 0) stiffness = 0.01;
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
-        this.mass = mass || 10;
-        this.geometry = null;
+        this.mass = mass || 4;
+        this.mesh = null;
     }
-    applyGeometry(geometry){
-        if(!geometry instanceof Towel) throw Error("Mesh not suitable for cloth simulation")
-        this.geometry = geometry;
+    applyMesh(mesh){
+        if(!mesh instanceof Towel) throw Error("Mesh not suitable for cloth simulation")
+        this.mesh = mesh;
         this._setupSpringMassSystem();
     }
 
     _setupSpringMassSystem(){
-        if(!this.geometry instanceof Towel) throw new Error("Cloth nur für Towel Objekte implementiert (Rechtecksmesh)")
-        let towel = this.geometry;
-        let points = towel.points;
-        let amountY = towel.amountY, amountX = towel.amountX;
+        if(!this.mesh instanceof Towel) throw new Error("Cloth nur für Towel Objekte implementiert (Rechtecksmesh)")
+        let towel = this.mesh;
+        let points=towel.points, amountY=towel.amountY, amountX=towel.amountX, density=towel.density;
+
+        // Oberflächenberechnung korrekt, 
+        // Unsicher warum geteilt durch Gesamtmasse. Auswirkung ist jedenfalls richtig
+        // Bei gleicher Fläche bleibt Masse der Partikel gleiche
+        let particelMass = amountX*density*amountY*density / this.mass 
 
         let structuralStrength = 0.9;
         let shearStrength = 0.9;
         let bendStrength = 0.3;
-
-        for (let i=0; i<points.length; i++) {
-            let p = points[i];
-            points[i] = new Particle(p, 1000 / this.mass)
+        for (let i=0; i < points.length; i++) {
+            points[i] = new Particle(points[i], particelMass)
         }
         let springs = this.springs = [];
         for (let y=0; y < amountY; y++) {
@@ -64,7 +66,7 @@ class Cloth{
             }
         }
         let triangles = this.triangles = [];
-        for (let y = 0; y < amountY; y++) {
+        for (let y=0; y < amountY; y++) {
             for (let x = 0; x < amountX; x++) {
                 if (y + 1 == amountY) break;
                 if (x + 1 == amountX) continue;
@@ -78,20 +80,21 @@ class Cloth{
     /** 
      * SIMULATION LOOP 
      */
-    updateGeometry(){
+    updateMesh(){
         this._verletIntegration();
         this._disctanceConstraint();
         this._collisionConstraint(); 
-        this.geometry.compileVerticesFromPoints();
+        this.mesh.compileVerticesFromPoints();
     }
 
     _verletIntegration() {
-        for (let i=0; i < this.geometry.points.length; i++) {
-            let p = this.geometry.points[i];
+        for (let i=0; i < this.mesh.points.length; i++) {
+            let p = this.mesh.points[i];
             if (p.pinned) continue;
 
-            let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass); // a=f/m == a=f*1/m 
-        
+            // a= f/m = f*1/m
+            // a=/60 weil a in Meter pro Sekunde und in einer Sekunde 60 Berechnungen stattfinden sollen
+            let a = new Vec3(windX, -gravity, windZ).scale(1/(p.mass*60)) 
             let v = Vec3.sub(p, p.old);
             p.old.set(p);
             p.add(v.add(a).scale(drag));
@@ -126,7 +129,7 @@ class Cloth{
         // Bottom Collision
         let friction = .5;
         let bounce = .9;     
-        for (let p of this.geometry.points) {
+        for (let p of this.mesh.points) {
             if (p.y < 0) {
                 p.y = 0;
                 p.old.x = p.x + (p.x-p.old.x) * friction;
@@ -137,10 +140,10 @@ class Cloth{
         // Object Collision
         for(let o of objects) {
             if(o instanceof Towel) continue;
-            else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.geometry.points);
-            else if(o instanceof Obj) o.resolveSoftPointCollision(this.geometry.points);  
+            else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.mesh.points);
+            else if(o instanceof Obj) o.resolveSoftPointCollision(this.mesh.points);  
             //else if(o instanceof Obj) o.resolveSoftTriangleCollision(this.triangles);  
-            //else if(o instanceof Obj) o.checkIfPointIsInside(this.geometry.points);  
+            //else if(o instanceof Obj) o.checkIfPointIsInside(this.mesh.points);  
         }  
     } 
 }

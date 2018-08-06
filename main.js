@@ -38,9 +38,9 @@ var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
 const drag = 0.95;      
-const gravity = 0.981; 
-const windX = 0.001;
-const windZ = 0.001;
+const gravity = 9.81; 
+const windX = 1;
+const windZ = 1;
 
 var objects;
 const camera = {
@@ -64,8 +64,10 @@ function initGL () {
 	let	icosa = new Obj("geometries/icosa.json", [0, 1, 0, .6]);
 	let triangle = new Obj("geometries/triangleBig.json");
 	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -2);
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -2).applyCloth(new Cloth(0.2));
-	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
+
+	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
+	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
+	let towelTightWide = new Towel(160, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
 	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
 	towel.points[380].pin();
@@ -73,6 +75,8 @@ function initGL () {
 	towel1Pin.points[0].pin();
 	towelTight.points[1599].pin();
 	towelTight.points[1560].pin();
+	towelTightWide.points[6240].pin();
+	towelTightWide.points[6399].pin();
 
 	var initialisationCallback = () => {
 		if(triangle.points) triangle.translate(-.5, 1, -1);

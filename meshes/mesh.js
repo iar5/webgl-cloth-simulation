@@ -54,7 +54,7 @@ class Mesh{
      * Animator
      */
     applyCloth(cloth){
-        cloth.applyGeometry(this);
+        cloth.applyMesh(this);
         this.cloth = cloth;
         return this;
     }
@@ -63,7 +63,7 @@ class Mesh{
         return this;
     }
     update(){
-        if(this.cloth) this.cloth.updateGeometry();
+        if(this.cloth) this.cloth.updateMesh();
         if(this.updater) this.updater();
     }
 
