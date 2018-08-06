@@ -37,13 +37,13 @@ var projectionMatrix = mat4.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
-var drag = 0.95;      
-var gravity = 0.981; 
-var windX = 0.000001;
-var windZ = 0.000001;
+const drag = 0.95;      
+const gravity = 0.981; 
+const windX = 0.001;
+const windZ = 0.001;
 
 var objects;
-var camera = {
+const camera = {
 	position: [0.0, -4, -15.0],
 	rotation: 0,
 	angle: 35,

@@ -40,7 +40,7 @@ class Obj extends Mesh {
             let r=this.color[0], g=this.color[1], b=this.color[2], a=this.color[3];
             for(let i=0; i<this._vertices.length/3; i++) this._colors.push(r,g,b,a);
 
-            this.points = this.generatePointsFromContinousArray(this._vertices)
+            this.points = this.generateVec3sFromContinousArray(this._vertices)
             this.normals = [];
             for(let i=0; i < this._normals.length; i+=3){
                 this.normals.push(new Vec3(this._normals[i], this._normals[i+1], this._normals[i+2]))

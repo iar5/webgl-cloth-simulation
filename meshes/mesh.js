@@ -3,6 +3,10 @@ class Mesh{
         this.program = program;
         this.drawMode = drawMode;
     }
+
+    /**
+     * GL
+     */
     initGl(gl, callback){
         this._positionBuffer = gl.createBuffer();
         this._positionBuffer.itemSize = 3;
@@ -45,6 +49,10 @@ class Mesh{
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
         gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
+
+    /**
+     * Animator
+     */
     applyCloth(cloth){
         cloth.applyGeometry(this);
         this.cloth = cloth;
@@ -54,24 +62,28 @@ class Mesh{
         this.updater = callack;
         return this;
     }
-    compileVerticesFromPoints() {
-        this._vertices = this.generateContinousArrayFromPoints(this.points);
+    update(){
+        if(this.cloth) this.cloth.updateGeometry();
+        if(this.updater) this.updater();
     }
-    generatePointsFromContinousArray(arr){
+
+    /**
+     * Übersetzer
+     */
+    compileVerticesFromPoints() {
+        this._vertices = this.generateContinousArrayFromVec3s(this.points);
+    }
+    generateContinousArrayFromVec3s(vec3s){       
+        let result = []
+        vec3s.forEach(vec => result.push(vec.x, vec.y, vec.z))
+        return result
+    }
+    generateVec3sFromContinousArray(arr){       
         let result = []
         for(let i = 0; i < arr.length; i+=3){
             result.push(new Vec3(arr[i], arr[i+1], arr[i+2]))
         }
         return result
-    }
-    generateContinousArrayFromPoints(points){       
-        let result = []
-        points.forEach(pos => result.push(pos.x, pos.y, pos.z))
-        return result
-    }
-    update(){
-        if(this.cloth) this.cloth.updateGeometry();
-        if(this.updater) this.updater();
     }
     /**
      * Transformationen 

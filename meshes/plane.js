@@ -6,7 +6,7 @@ class Plane extends Mesh{
         this.midPoint = new Vec3(0, 0, 0);
 
         this._generateBufferData();
-        this.points = this.generatePointsFromContinousArray(this._vertices)
+        this.points = this.generateVec3sFromContinousArray(this._vertices)
     }
     _generateBufferData() {
         /**

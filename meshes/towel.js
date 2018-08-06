@@ -5,7 +5,7 @@ class Towel extends Mesh{
         this.amountY = amountY;
         this.density = density;
         this._generateBufferData();
-        this.points = this.generatePointsFromContinousArray(this._vertices)
+        this.points = this.generateVec3sFromContinousArray(this._vertices)
     }
     _generateBufferData() {
         /*

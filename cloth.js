@@ -4,7 +4,7 @@ class Cloth{
         else if(stiffness < 0) stiffness = 0.01;
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
-        this.mass = mass || 5;
+        this.mass = mass || 10;
         this.geometry = null;
     }
     applyGeometry(geometry){
@@ -18,7 +18,6 @@ class Cloth{
         let towel = this.geometry;
         let points = towel.points;
         let amountY = towel.amountY, amountX = towel.amountX;
-        let particelMass = this.mass / points.length / towel.density;
 
         let structuralStrength = 0.9;
         let shearStrength = 0.9;
@@ -26,7 +25,7 @@ class Cloth{
 
         for (let i=0; i<points.length; i++) {
             let p = points[i];
-            points[i] = new Particle(p, particelMass)
+            points[i] = new Particle(p, 1000 / this.mass)
         }
         let springs = this.springs = [];
         for (let y=0; y < amountY; y++) {
@@ -91,9 +90,9 @@ class Cloth{
             let p = this.geometry.points[i];
             if (p.pinned) continue;
 
-            let a = new Vec3(windX, -gravity, windZ).scale(p.mass); // eigentlich a=f/m bzw. a=f* 1/m
+            let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass); // a=f/m == a=f*1/m 
+        
             let v = Vec3.sub(p, p.old);
-
             p.old.set(p);
             p.add(v.add(a).scale(drag));
         }
