@@ -37,7 +37,7 @@ var projectionMatrix = mat4.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
-const drag = 0.95;      
+const drag = 0.99;      
 const gravity = 9.81; 
 const windX = 1;
 const windZ = 1;
@@ -69,7 +69,7 @@ function initGL () {
 	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
 	let towelTightWide = new Towel(160, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
 	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(0.2));
+	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth());
 	towel.points[380].pin();
 	towel.points[399].pin();
 	towel1Pin.points[0].pin();

@@ -1,10 +1,10 @@
 class Cloth{
     constructor(stiffness, mass) {
-        if (!stiffness) stiffness = 0.3;
+        if (!stiffness) stiffness = 0.5;
         else if(stiffness < 0) stiffness = 0.01;
         else if(stiffness > 1) stiffness = 1;
         this.stiffness = stiffness
-        this.mass = mass || 4;
+        this.mass = mass || 3;
         this.mesh = null;
     }
     applyMesh(mesh){
@@ -92,9 +92,9 @@ class Cloth{
             let p = this.mesh.points[i];
             if (p.pinned) continue;
 
-            // a= f/m = f*1/m
-            // a=/60 weil a in Meter pro Sekunde und in einer Sekunde 60 Berechnungen stattfinden sollen
-            let a = new Vec3(windX, -gravity, windZ).scale(1/(p.mass*60)) 
+            // a = f/m = f*1/m
+            // a=/60 weil a in Meter pro Sekunde^2 und in einer Sekunde 60 Berechnungen stattfinden sollen und die Kräfte konstant sind!
+            let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass).scale(1/60)
             let v = Vec3.sub(p, p.old);
             p.old.set(p);
             p.add(v.add(a).scale(drag));
@@ -106,25 +106,30 @@ class Cloth{
      * Abbruch wenn alle Korrekturen geringer sind als die zugelassene Elastizität (oder Maximalanzahl der Wiederholungen erreicht -> geht stark auf die Performance)
      */
     _disctanceConstraint() {
-        let stiffnesreached = false;
-        for (var i=0; i<50 && !stiffnesreached; i++) {
-            stiffnesreached = true;
-            for (var j=0; j < this.springs.length; j++) {
-                let s = this.springs[j];
+        let satisfied = false;
+        let elogation;
+        let iterations = 50;
+        let i = 0;
 
-                let d = Vec3.sub(s.p1, s.p0);
-                let dist = Vec3.length(d);
-                let force = s.strength * (dist - s.length); 
-                let offset = Vec3.scale(Vec3.normalize(d), force/2)
-                
-                if (!s.p0.pinned) s.p0.add(offset)
-                if (!s.p1.pinned) s.p1.sub(offset) 
-                if(force / dist >= this.stiffness) stiffnesreached = false; 
+        while(satisfied != true){
+            satisfied = true;
+            for (let s of this.springs) {
+                elogation = s.disctanceConstraint()
+                if(elogation > this.stiffness) satisfied = false; 
             }
-            if(i==49) console.log("Maximum stiff iteration number reached")
-        }   
-    }
+            this._collisionConstraint();  
 
+            if(satisfied){
+                console.log("Satisfied on iteration "+i+ "/"+iterations)
+            }
+            if(elogation > this.stiffness) {
+                console.log("Overeloganted spring "+ Math.round((elogation-this.stiffness)*100) + "%")
+            }
+            if(++i >= iterations) {
+                break;
+            }
+        }  
+    }   
     _collisionConstraint() {
         // Bottom Collision
         let friction = .5;
