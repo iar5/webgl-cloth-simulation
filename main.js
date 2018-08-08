@@ -37,11 +37,6 @@ var projectionMatrix = mat4.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
-const drag = 0.99;      
-const gravity = 9.81; 
-const windX = 1;
-const windZ = 1;
-
 var objects;
 const camera = {
 	position: [0.0, -4, -15.0],
@@ -60,30 +55,27 @@ function initGL () {
 	// ----------------- Scene Start ------------------ //
 
 	let cube = new Obj("geometries/cube.json", [1, 0, 0, .6]);
-	let	human = new Obj("models/human_806polys.json");
+	let	human = new Obj("geometries/human_806polys.json");
 	let	icosa = new Obj("geometries/icosa.json", [0, 1, 0, .6]);
 	let triangle = new Obj("geometries/triangleBig.json");
-	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -2);
+	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -1);
 
-	let towel = new Towel(20, 20, .3).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	let towelTight = new Towel(40, 40, .15).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	let towelTightWide = new Towel(160, 40, .15).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
-	let towelTighter = new Towel(80, 80, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
 	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth());
-	towel.points[380].pin();
-	towel.points[399].pin();
-	towel1Pin.points[0].pin();
-	towelTight.points[1599].pin();
-	towelTight.points[1560].pin();
-	towelTightWide.points[6240].pin();
-	towelTightWide.points[6399].pin();
-
+	let towel = new Towel(24, 24, .25).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
+	let towelTight = new Towel(48, 48, .125).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
+	let towelTightWide = new Towel(144, 48, .125).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
+	let towelTighter = new Towel(96, 96, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
+	towel1Pin.cloth.pin(0);
+	towel.cloth.pin(575, 552)
+	towelTight.cloth.pin(2303, 2256)
+	towelTightWide.cloth.pin(6911, 6778)
+	
 	var initialisationCallback = () => {
 		if(triangle.points) triangle.translate(-.5, 1, -1);
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
-	objects = [towelTight, cube, triangle, sphere, icosa]
+	objects = [towelTight, towel, sphere, cube]
 
 
 

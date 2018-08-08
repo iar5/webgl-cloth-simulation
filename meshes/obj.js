@@ -20,6 +20,7 @@ class Obj extends Mesh {
         else if(color == 'magenta') this.color = [1, 0, 1, 1]
         else this.color = [.5, .6, .5, 1]
     }
+
     initGl(gl, callback) {
         loadJSONResource(this.src, (model) => {
             console.log(model)
@@ -56,22 +57,15 @@ class Obj extends Mesh {
             super.initGl(gl, callback)
         })
     }
-    resolveSoftPointCollision(points){
-        for (let t of this.triangles) {
-            for(let p of points){
-                t.resolveContinousPointCollision(p)
-            }
-        }
-    }
-    resolveSoftTriangleCollision(softTriangles){
-        for (let t of this.triangles) {
-            for (let st of softTriangles) {
-                if(!t.testTrianglSphere(st)) continue
-                t.resolveSoftTriangleCollision(st);
-            }
-        }
-    }
-    checkIfPointIsInside(points){
+
+    /**
+     * Prüft wie viele Schnittpunkte ein Strahl aus Partikel+Geschw.vektor mit den Teilobjekte (Dreiecke) dieses Objektes besitzt
+     * Insofern Objekt geschlossen ist (Planare Objekte ohne 'Volumen' falle weg):
+     * @returns {true}  bei ungeraden Schnittpunkteanzahl
+     * @returns {false} bei gerader Schnittpunktanzahl
+     * (Nicht komplett auf Richtigkeit getestet)
+     */
+    isPointInside(points){
         for(let p of points){
             let intersections = [];
             let dir = Vec3.sub(p, p.old).normalize();
@@ -79,10 +73,25 @@ class Obj extends Mesh {
                 let t = tri.moellerTrumbore(p, dir);
                 if(t != null && t > 0) intersections.push(new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
             }  
-            // Bei ungerader Schnittpunktanzahl und geschlossenem Objekt -> Punkt befindet sich innerhalb des Objektes (Planares Dreieck Obj davon ausschließen)
-            if(this.triangles.length>1 && intersections.length % 2 == 1) console.log(this.src, intersections.length);
+           return this.triangles.length>1 && intersections.length % 2 == 1;
         }
     } 
+    resolvePartikelCollision(points){
+        for (let t of this.triangles) {
+            for(let p of points){
+                if(!t.testPointSphere(p)) continue
+                t.resolvePartikelCollision(p)
+            }
+        }
+    }
+    resolveTriangleCollision(softTriangles){
+        for (let t of this.triangles) {
+            for (let st of softTriangles) {
+                if(!t.testTrianglSphere(st)) continue
+                t.resolveTriangleCollision(st);
+            }
+        }
+    }
 }
 
 

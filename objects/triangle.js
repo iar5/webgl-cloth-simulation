@@ -8,8 +8,8 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        // VORBERECHNUNETE DATEN - Nur für statische Objekte!! (Ohne Roatation, Federn, o.Ä.)
-        this.EPSILON = 0.001
+        // VORBERECHNUNETE DATEN - Nur für statische Objekte!! (auch ohne Roatation)
+        this.EPSILON = 0.0001
         this._edge1 = Vec3.sub(this.b, this.a)
         this._edge2 = Vec3.sub(this.c, this.a)
         this._n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
@@ -27,7 +27,7 @@ class Triangle {
         return Vec3.dist(p, this.getCatenoid()) + this.EPSILON <= this.getRadius();
     } 
     testTrianglSphere(t){
-        return Vec3.dist(t.getCatenoid(), this.getCatenoid()) +this.EPSILON <= t.getRadius()+this.getRadius();
+        return Vec3.dist(t.getCatenoid(), this.getCatenoid()) + this.EPSILON <= t.getRadius()+this.getRadius();
     }
     getCatenoid(){
         let a=this.a, b=this.b, c=this.c;
@@ -89,7 +89,7 @@ class Triangle {
      * Wird (bis jetzt) nur auf statischen Dreiecken aufgerufen, daher vorberechnete Daten
      * @param {Vec3} p 
      */
-    resolveContinousPointCollision(p) { 
+    resolvePartikelCollision(p) { 
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
         let t = this.moellerTrumbore(p) // not needed to pass over dir, its alredy precalculated in there 
         if(t == null || t > 0) return null; 
@@ -98,7 +98,7 @@ class Triangle {
 
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
         if(Vec3.dist(p, ip) > Vec3.dist(p, p.old)) return null; 
-        let newp = Vec3.add(ip, Vec3.scale(this._n, 0.02))
+        let newp = Vec3.add(ip, Vec3.scale(this._n, this.EPSILON))
         p.set(newp)
         p.old.set(newp)
     }  
@@ -154,7 +154,7 @@ class Triangle {
     /**
      * @param {Triangle} t
      */
-    resolveSoftTriangleCollision(t){
+    resolveTriangleCollision(t){
         // Edge-Triangle Intersection
         let c_ab = this.getSegmentContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
         let c_bc = this.getSegmentContact(t.b, t.c) || NaN;
