@@ -26,6 +26,7 @@ var gl;
 var phongProgram;
 var basicProgram;
 var stats;
+var gui;
 
 var	lastTick = 0;
 var mouseDown = false;
@@ -46,11 +47,19 @@ const camera = {
 }
 
 function initGL () {	
+	// ----------------- Setup ------------------ //
+
 	gl = canvas.getContext("experimental-webgl");
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	initShaders();
+	let loadingText = document.getElementById("loadingText");
+	loadingText.parentNode.removeChild(loadingText);
+	canvas.style.display = "initial";
+	stats = new Stats();
+	document.body.appendChild(stats.dom);
+
 	
 	// ----------------- Scene Start ------------------ //
 
@@ -58,24 +67,23 @@ function initGL () {
 	let	human = new Obj("geometries/human_806polys.json");
 	let	icosa = new Obj("geometries/icosa.json", [0, 1, 0, .6]);
 	let triangle = new Obj("geometries/triangleBig.json");
-	let	sphere = new Sphere(1, 18, 18).translate(-1, 2, -1);
+	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
+	let	sphere2 = new Sphere(1.2, 22, 22).translate(1.2, 3, -1);
 
-	let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth());
-	let towel = new Towel(24, 24, .25).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	let towelTight = new Towel(48, 48, .125).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	let towelTightWide = new Towel(144, 48, .125).rotateX(90).translate(0, 6, -4).applyCloth(new Cloth());
-	let towelTighter = new Towel(96, 96, .075).rotateX(90).translate(0, 6, -3).applyCloth(new Cloth());
-	towel1Pin.cloth.pin(0);
-	towel.cloth.pin(575, 552)
-	towelTight.cloth.pin(2303, 2256)
-	towelTightWide.cloth.pin(6911, 6778)
-	
+	//let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(), [0]);
+	let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
+	let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
+	//let towelTightWide = new Towel(144, 48, .125).rotateX(-90).translate(0, 6, 4).applyCloth(new Cloth(), [0, 143]);
+	//let towelTighter = new Towel(96, 96, .0625).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 95]);
+
+
 	var initialisationCallback = () => {
 		if(triangle.points) triangle.translate(-.5, 1, -1);
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
 		if(cube.points) cube.translate(1.5, 3.5, 0);
 	}
-	objects = [towelTight, towel, sphere, cube]
+	objects = [towel, towelTight, sphere, sphere2]
+
 
 
 
@@ -89,18 +97,12 @@ function initGL () {
 			if(counter == 0) start();
 		}
 	}(objects.length);
-
 	objects.forEach(o => {
 		o.initGl(gl, starter)
 	});
 
 	function start(){
 		initialisationCallback()
-		let loadingText = document.getElementById("loadingText");
-		loadingText.parentNode.removeChild(loadingText);
-		canvas.style.display = "initial";
-		stats = new Stats();
-		document.body.appendChild(stats.dom);
 		loop();
 	}
 
@@ -132,19 +134,6 @@ function initGL () {
 		lastTick = timeNow;
 	}
 
-	function createProgram(vertexShaderCode, fragmentShaderCode) {
-		let program = gl.createProgram();
-		var vshader = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(vshader, vertexShaderCode);
-		gl.compileShader(vshader);
-		gl.attachShader(program, vshader);
-		var fshader = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(fshader, fragmentShaderCode);
-		gl.compileShader(fshader);
-		gl.attachShader(program, fshader);
-		gl.linkProgram(program);
-		return program;
-	}
 	function initShaders() {
 		basicProgram = createProgram(basic_vs, basic_fs)
 		gl.useProgram(basicProgram);
@@ -161,6 +150,19 @@ function initGL () {
 		bindAttribute(phongProgram, "vertexNormalAttribute", "vertexNormal");
 		phongProgram.projMatrixUniform = gl.getUniformLocation(phongProgram, "projectionMatrix");
 		phongProgram.mvMatrixUniform = gl.getUniformLocation(phongProgram, "mvMatrix");
+	}
+	function createProgram(vertexShaderCode, fragmentShaderCode) {
+		let program = gl.createProgram();
+		var vshader = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(vshader, vertexShaderCode);
+		gl.compileShader(vshader);
+		gl.attachShader(program, vshader);
+		var fshader = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(fshader, fragmentShaderCode);
+		gl.compileShader(fshader);
+		gl.attachShader(program, fshader);
+		gl.linkProgram(program);
+		return program;
 	}
 	function bindAttribute(program, programAttributeName, attributeName){
 		program[programAttributeName] = gl.getAttribLocation(program, attributeName);

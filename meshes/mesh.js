@@ -53,9 +53,10 @@ class Mesh{
     /**
      * Animator
      */
-    applyCloth(cloth){
+    applyCloth(cloth, pinArr){
         cloth.applyMesh(this);
         this.cloth = cloth;
+        if(pinArr) cloth.pin(pinArr)
         return this;
     }
     applyUpdateCallback(callack){

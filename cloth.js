@@ -1,18 +1,26 @@
-// External forces
-const gravity = 9.81; 
-const windX = 0.001;
-const windZ = 0.001;
+window.addEventListener('load', () => {
+    gui = new dat.GUI();
+    var enviroment = gui.addFolder('enviroment');
+    enviroment.add(this, 'gravity');
+    enviroment.add(this, 'windX');
+    enviroment.add(this, 'windZ');
+    enviroment.add(this, 'drag', 0.9, 1.1);
+})
+var clothIstances = 0;
 
-// Spring forces
-const structuralStrength = 0.9;
-const shearStrength = 0.9;
-const bendStrength = 0.3;
+var gravity = 9.81; 
+var windX = 0.00;
+var windZ = 0.00;
+var drag = 0.99; 
 
-const inertia = 0.98; // partikel kommen schneller zur ruhe
-const bounce = 0.6;  
-const friction = 0.5;
+var structuralStrength = 0.9;
+var shearStrength = 0.9;
+var bendStrength = 0.3;
 
-const iterations = 50; 
+var defaultMass = 1
+var defaultStiffness = 0.4
+var defaultIterations = 100; 
+
 
 
 /**
@@ -24,73 +32,80 @@ const iterations = 50;
  * @param {Number} mass Gewicht des gesamten Textil
  */
 class Cloth{
-    constructor(stiffness, mass) {
+    constructor(stiffness=defaultStiffness, mass=defaultMass, iterations=defaultIterations) {
         this.mesh = null;
-        this.mass = mass || 1;
-        if(!stiffness) this.stiffness = 0.1
-        else if(stiffness < 0) this.stiffness = 0;
-        else if(stiffness > 1) this.stiffness = 1;
+        this.mass = mass;
+        this.iterations = iterations;
+        this.iterationMode = "collectiv"
+        this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
+
+        let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
+        guiFolder.add(this, 'iterations', 0, 500).step(1);
+        guiFolder.add(this, 'stiffness', 0, 2);
+        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
     }
     applyMesh(mesh){
-        if(!mesh instanceof Towel) throw Error("Mesh not suitable for cloth simulation");
-        let towel=this.mesh=mesh, points=towel.points, amountY=towel.amountY, amountX=towel.amountX, density=towel.density;
-        let particelMass = amountX*density*amountY*density / this.mass
+        if(mesh instanceof Towel){
+            let towel=this.mesh=mesh;
+            let points=towel.points, amountY=towel.amountY, amountX=towel.amountX, density=towel.density;
+            let particelMass = amountX*density*amountY*density / this.mass
 
-        for (let i=0; i < points.length; i++) {
-            points[i] = new Particle(points[i], particelMass)
-        }
-        let springs = this.springs = [];
-        for (let y=0; y < amountY; y++) {
-            for (let x=0; x < amountX; x++) {
-                /* strucutral springs */
-                if (x+1 < amountX) {
-                    let p0 = points[y*amountX + x],
-                        p1 = points[y*amountX + x+1];
-                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
+            for (let i=0; i < points.length; i++) {
+                points[i] = new Particle(points[i], particelMass)
+            }
+            let springs = this.springs = [];
+            for (let y=0; y < amountY; y++) {
+                for (let x=0; x < amountX; x++) {
+                    /* strucutral springs */
+                    if (x+1 < amountX) {
+                        let p0 = points[y*amountX + x],
+                            p1 = points[y*amountX + x+1];
+                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
+                        }
+                    if (y+1 < amountY) {
+                        let p0 = points[y*amountX + x],
+                            p1 = points[(y+1)*amountX + x];
+                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
+                        }
+                    /* shear springs */
+                    if (x+1 < amountX && y+1 < amountY) {
+                        let p0 = points[y*amountX + x],
+                            p1 = points[(y+1)*amountX + x+1],
+                            p2 = points[y*amountX + x+1],
+                            p3 = points[(y+1)*amountX + x];
+                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), shearStrength));
+                        springs.push(new Spring(p2, p3, Vec3.dist(p2, p3), shearStrength));
                     }
-                if (y+1 < amountY) {
-                    let p0 = points[y*amountX + x],
-                        p1 = points[(y+1)*amountX + x];
-                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), structuralStrength));
+                    /* bend springs */
+                    if(x+2 < amountX) {
+                        let p0 = points[y*amountX + x],
+                            p1 = points[y*amountX + x+2];
+                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
+                        }
+                    if(y+2 < amountY) {
+                        let p0 = points[y*amountX + x],
+                            p1 = points[(y+2)*amountX + x];
+                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
                     }
-                /* shear springs */
-                if (x+1 < amountX && y+1 < amountY) {
-                    let p0 = points[y*amountX + x],
-                        p1 = points[(y+1)*amountX + x+1],
-                        p2 = points[y*amountX + x+1],
-                        p3 = points[(y+1)*amountX + x];
-                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), shearStrength));
-                    springs.push(new Spring(p2, p3, Vec3.dist(p2, p3), shearStrength));
                 }
-                /* bend springs */
-                if(x+2 < amountX) {
-                    let p0 = points[y*amountX + x],
-                        p1 = points[y*amountX + x+2];
-                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
-                    }
-                if(y+2 < amountY) {
-                    let p0 = points[y*amountX + x],
-                        p1 = points[(y+2)*amountX + x];
-                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), bendStrength));
+            }
+            let triangles = this.triangles = [];
+            for (let y=0; y < amountY; y++) {
+                for (let x = 0; x < amountX; x++) {
+                    if (y + 1 == amountY) break;
+                    if (x + 1 == amountX) continue;
+                    triangles.push(new Triangle(points[y*amountX + x], points[(y+1)*amountX + x], points[y*amountX + x+1]));
+                    triangles.push(new Triangle(points[(y+1)*amountX + x], points[(y+1)*amountX + x+1], points[y*amountX + x+1]));
                 }
             }
         }
-        let triangles = this.triangles = [];
-        for (let y=0; y < amountY; y++) {
-            for (let x = 0; x < amountX; x++) {
-                if (y + 1 == amountY) break;
-                if (x + 1 == amountX) continue;
-                triangles.push(new Triangle(points[y*amountX + x], points[(y+1)*amountX + x], points[y*amountX + x+1]));
-                triangles.push(new Triangle(points[(y+1)*amountX + x], points[(y+1)*amountX + x+1], points[y*amountX + x+1]));
-            }
-        }
+        else throw Error("Mesh not suitable for cloth simulation");
+
     }
-    pin(... pins){
+    pin(pins){
         for(let i of pins) this.mesh.points[i].pin();
     }
-    unpin(... pins){
-        for(let i of pins) this.mesh.points[i].unpin();
-    }
+
 
     /** 
      * Simulation loop
@@ -108,31 +123,44 @@ class Cloth{
 
             //let v = Vec3.sub(p, p.old).scale(1/60);
             //let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass).scale(1/60/60*0.5);
-            let v = Vec3.sub(p, p.old).scale(inertia)
+            let v = Vec3.sub(p, p.old)
             let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass).scale(1/60);
             p.old.set(p);
-            p.add(v).add(a);
+            p.add((v.add(a).scale(drag)));
         }
     }
     _satisfyConstraints() {
         let satisfied = false;
-        let elogation;
-        let i = 0;
 
-        while(satisfied != true){
+        for(let i=1; satisfied!=true && i<this.iterations; i++){
             satisfied = true;
             for (let s of this.springs) {
-                elogation = s.disctanceConstraint()
-                if(elogation > this.stiffness) satisfied = false; 
+
+                if(this.iterationMode == 'single'){
+                    if(Math.abs(s.getElongationInPercent()) > this.stiffness){
+                        let elogation = s.disctanceConstraint(this.stiffness)
+                        satisfied = false; 
+                        //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
+                    }
+                }
+                else if(this.iterationMode == 'collectiv'){
+                    let elongation = s.disctanceConstraint()
+                    if(Math.abs(elongation) > this.stiffness) satisfied = false; 
+                }   
+                else if(this.iterationMode == 'fullIteration'){
+                    satisfied = false;
+                    s.disctanceConstraint()
+                }
             }
+
+            if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
             this.__collisionConstraint();  
-            //if(satisfied) console.log("Satisfied on iteration "+i+ "/"+iterations)
-            //if(elogation > this.stiffness) console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
-            if(++i >= iterations) break;
         }  
     }   
     __collisionConstraint() {
         // Bottom Collision    
+        let bounce = 0.6;  
+        let friction = 0.5;
         for (let p of this.mesh.points) {
             if (p.y < 0) {
                 p.y = 0;
