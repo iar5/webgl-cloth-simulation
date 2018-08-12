@@ -16,7 +16,7 @@ class Particle extends Vec3{
         this.pinned = false;
     } 
     pin(){
-        //this.mass = Number.NEGATIVE_INFINITY;
+        this.mass = 0
         this.pinned = true;
     }
     unpin(){

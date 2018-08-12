@@ -52,6 +52,8 @@ class Mesh{
 
     /**
      * Animator
+     * @param {Cloth} cloth
+     * @param {Array} pinArr Indices der Partikel die nach der Initierung des Cloth gepinned werden
      */
     applyCloth(cloth, pinArr){
         cloth.applyMesh(this);
@@ -60,35 +62,64 @@ class Mesh{
         return this;
     }
     applyUpdateCallback(callack){
-        this.updater = callack;
+        this.animator = callack;
         return this;
     }
     update(){
         if(this.cloth) this.cloth.updateMesh();
-        if(this.updater) this.updater();
+        if(this.animator) this.animator();
     }
 
     /**
-     * Übersetzer
+     * Update Buffer Vertices mit neuen Partikelpositionen
      */
-    compileVerticesFromPoints() {
-        this._vertices = this.generateContinousArrayFromVec3s(this.points);
+    updateVerticesFromPoints() {
+        this._vertices = generateContinousArrayFromVec3s(this.points);
     }
-    generateContinousArrayFromVec3s(vec3s){       
-        let result = []
-        vec3s.forEach(vec => result.push(vec.x, vec.y, vec.z))
-        return result
+
+    updateNormals(normals) {
+        this._normals = generateContinousArrayFromVec3s(normals);
     }
-    generateVec3sFromContinousArray(arr){       
-        let result = []
-        for(let i = 0; i < arr.length; i+=3){
-            result.push(new Vec3(arr[i], arr[i+1], arr[i+2]))
+
+    /**
+     * Neuberechnung der Buffer Normalen der Vertices, falls die Dreiecke verändert wurden. 
+     * https://stackoverflow.com/a/6661242/7764088
+     */
+    updateNormalsFromTriangles(){
+        this._normals = [];
+        for(let p of this.points){
+            let normale = new Vec3();
+            for(let tri of this.triangles){
+                if(tri.hasPoint(p)) normale.add(tri.n)
+            }
+            normale.normalize();
+            this._normals.push(normale.x, normale.y, normale.z)
         }
-        return result
     }
+
+    /**
+     * Normalen der Dreiecke updaten 
+     * Nur für dynamische Objekte wie Cloth
+     */
+    recalculateTriangleNormals(){
+        for(let tri of this.triangles){
+            tri.recalculateNormal()
+        }
+    }
+
+    /**
+     * Normalen + andere vorberechnete Daten neu berechnen
+     * Für statische Objekte 
+     */
+    recalculateTrianglePrecalculations(){
+        for(let tri of this.triangles){
+            tri.recalculatePrecalculatio()
+        }
+    }
+
     /**
      * Transformationen 
-     * TODO Normalen mit rotieren 
+     * Dabei werden die Punkte, alten Punkte (von Partikel) und Normalen beachtet
      */
     translate(x, y, z){
         let temp = new Vec3(x, y, z)
@@ -96,52 +127,36 @@ class Mesh{
             pos.add(temp)
             if(pos.old) pos.old.add(temp)
         });
-        this.compileVerticesFromPoints();
+        this.updateVerticesFromPoints();
         return this; 
     }
+
     rotateX(degrees){
-        let rad = degToRad(degrees);
-        this.points.forEach(pos => {
-            let y = pos.y;
-            pos.y = y*Math.cos(rad) - pos.z*Math.sin(rad);
-            pos.z = y*Math.sin(rad) + pos.z*Math.cos(rad);
-            if(pos instanceof Particle) {
-                let oldy = pos.old.y;
-                pos.old.y = oldy*Math.cos(rad) - pos.old.z*Math.sin(rad);
-                pos.old.z = oldy*Math.sin(rad) + pos.old.z*Math.cos(rad);
-            }
-        });
-        this.compileVerticesFromPoints();
-        return this;
+        let rad = degToRad(degrees)
+        let matrix = mat3.create([1, 0, 0,   0, Math.cos(rad), -Math.sin(rad),   0, Math.sin(rad), Math.cos(rad) ])
+        return this.rotate(matrix);
     }
     rotateY(degrees){
-        let rad = degToRad(degrees);
-        this.points.forEach(pos => {
-            let z = pos.z;
-            pos.x = z*Math.sin(rad) + pos.x*Math.cos(rad);
-            pos.z = z*Math.cos(rad) - pos.x*Math.sin(rad);
-            if(pos instanceof Particle) {
-                let oldz = pos.old.z;
-                pos.old.x = oldz*Math.sin(rad) + pos.old.x*Math.cos(rad);
-                pos.old.z = oldz*Math.cos(rad) - pos.old.x*Math.sin(rad);
-            }
-        })
-        this.compileVerticesFromPoints();
-        return this;
+        let rad = degToRad(degrees)
+        let matrix = mat3.create([Math.cos(rad), 0, Math.sin(rad),   0, 1, 0,   -Math.sin(rad), 0, Math.cos(rad)])
+        return this.rotate(matrix);
     }
     rotateZ(degrees){
-        let rad = degToRad(degrees);
-        this.points.forEach(pos => {
-            let x = pos.x;
-            pos.x = x*Math.cos(rad) - pos.y*Math.sin(rad);
-            pos.y = x*Math.sin(rad) + pos.y*Math.cos(rad);
-            if(pos instanceof Particle) {
-                let oldx = pos.old.x;
-                pos.old.x = oldx*Math.cos(rad) - pos.old.y*Math.sin(rad);
-                pos.old.y = oldx*Math.sin(rad) + pos.old.y*Math.cos(rad);
-            }
-        })
-        this.compileVerticesFromPoints();
+        let rad = degToRad(degrees)
+        let matrix = mat3.create([Math.cos(rad), -Math.sin(rad), 0,   Math.sin(rad), Math.cos(rad), 0,   0, 0, 1])
+        return this.rotate(matrix);
+    }
+    rotate(matrix){
+        let normals = generateVec3sFromContinousArray(this._normals);
+        for(let i=0; i<this.points.length; i++){
+            let p = this.points[i];
+            p.multiplyMat3(matrix);
+            if(p instanceof Particle) p.old.multiplyMat3(matrix);
+            normals[i].multiplyMat3(matrix).normalize();
+        }
+        this.updateVerticesFromPoints();
+        this.updateNormals(normals);
+        this.recalculateTrianglePrecalculations();
         return this;
     }
 }

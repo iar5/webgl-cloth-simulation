@@ -1,12 +1,13 @@
 class Towel extends Mesh{
     constructor(amountX=10, amountY=10, density=1) {
-        super(basicProgram, gl.LINES)
+        super(phongProgram, gl.TRIANGLES)
         this.amountX = amountX;
         this.amountY = amountY;
         this.density = density;
         this._generateBufferData();
-        this.points = this.generateVec3sFromContinousArray(this._vertices)
+        this._generatePointsAndTriangles();
     }
+
     _generateBufferData() {
         /*
         * PUNKTE:
@@ -34,10 +35,10 @@ class Towel extends Mesh{
         for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
                 if(this.drawMode == gl.TRIANGLES){
-                    if (y + 1 == this.amountY) break;
-                    if (x + 1 == this.amountX) continue;
-                    this._indices.push(y*this.amountX + x, (y+1)*this.amountX + x, y*this.amountX + x+1);
-                    this._indices.push((y+1)*this.amountX + x, (y+1)*this.amountX + x+1), y*this.amountX + x+1;
+                    if (y+1 == this.amountY) break;
+                    if (x+1 == this.amountX) continue;
+                    this._indices.push(y*this.amountX + x,      (y+1)*this.amountX + x,     y*this.amountX + x+1);
+                    this._indices.push((y+1)*this.amountX + x,  (y+1)*this.amountX + x+1,  y*this.amountX + x+1);
                 }
                 else if(this.drawMode == gl.LINES){
                     if (y+1 < this.amountY) this._indices.push(y*this.amountX + x, (y+1)*this.amountX + x);
@@ -47,13 +48,30 @@ class Towel extends Mesh{
                 }
             }
         }
-        this._normals = new Array(this._vertices.length)
-        this._normals.fill(0)
+
+        this._normals = [];
+        for(let i=0; i<this._vertices.length/3; i++){
+            this._normals.push(0, 1, 0)
+        }  
 
         this._colors = [];
         for(let i=0; i<this._vertices.length/3; i++){
-            this._colors.push(.1, .1, .1, 1)
+            this._colors.push(.5, .7, .5, 1)
         }  
+    }
+
+    _generatePointsAndTriangles(){
+        this.points = generateVec3sFromContinousArray(this._vertices)
+        
+        this.triangles = [];
+        for (let y=0; y < this.amountY; y++) {
+            for (let x = 0; x < this.amountX; x++) {
+                if (y + 1 == this.amountY) break;
+                if (x + 1 == this.amountX) continue;
+                this.triangles.push(new Triangle(this.points[y*this.amountX + x], this.points[(y+1)*this.amountX + x], this.points[y*this.amountX + x+1]));
+                this.triangles.push(new Triangle(this.points[(y+1)*this.amountX + x], this.points[(y+1)*this.amountX + x+1], this.points[y*this.amountX + x+1]));
+            }
+        }
     }
 }
 

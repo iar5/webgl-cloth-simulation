@@ -8,13 +8,34 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        // VORBERECHNUNETE DATEN - Nur für statische Objekte!! (auch ohne Roatation)
+        this.recalculatePrecalculatio();
+    }
+
+    hasPoint(p){
+        return p == this.a || p == this.b || p == this.c;
+    }
+
+    /**
+     * VORBERECHNUNETE DATEN 
+     * Für Möllertrumbore bei für statische Objekte 
+     */
+    recalculatePrecalculatio(){
         this.EPSILON = 0.0001
         this._edge1 = Vec3.sub(this.b, this.a)
         this._edge2 = Vec3.sub(this.c, this.a)
-        this._n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
-        this._pvec = Vec3.cross(Vec3.scale(this._n, -1), this._edge2)
+        this.n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
+        this._pvec = Vec3.cross(Vec3.scale(this.n, -1), this._edge2)
         this._det = Vec3.dot(this._edge1, this._pvec)
+    }
+
+    /**
+     * Counter clockwise normal calculation
+     * Für dynamische Dreiecke die nicht die vorberechnete Daten benutzen
+     */
+    recalculateNormal(){
+        let edge1 = Vec3.sub(this.b, this.a)
+        let edge2 = Vec3.sub(this.c, this.a)
+        this.n = Vec3.normalize(Vec3.cross(edge1, edge2));
     }
 
     /**
@@ -38,14 +59,6 @@ class Triangle {
         return Math.max(Math.max(Vec3.sub(a,b).getLength(), Vec3.sub(b,c).getLength()), Vec3.sub(c,a).getLength()) / 2
     }
 
-    /**
-     * Counter clockwise normal calculation
-     */
-    getCCNormal(){
-        this.edge1 = Vec3.sub(this.b, this.a)
-        this.edge2 = Vec3.sub(this.c, this.a)
-        return Vec3.normalize(Vec3.cross(this.edge1, this.edge2))
-    }
 
     /**
      * MÖLLER-TRUMBORE Ray-Triangle Intersection Algorithmus
@@ -61,7 +74,7 @@ class Triangle {
             edge2 = this._edge2;
             pvec = this._pvec;
             det = this._det;
-            dir = Vec3.scale(this._n, -1)
+            dir = Vec3.scale(this.n, -1)
         }
         else {
             // Edge-Triangle (Costum Ray)
@@ -93,12 +106,12 @@ class Triangle {
         // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
         let t = this.moellerTrumbore(p) // not needed to pass over dir, its alredy precalculated in there 
         if(t == null || t > 0) return null; 
-        let dir  = Vec3.scale(this._n, -1);
+        let dir  = Vec3.scale(this.n, -1);
         let ip   = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
         // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
         if(Vec3.dist(p, ip) > Vec3.dist(p, p.old)) return null; 
-        let newp = Vec3.add(ip, Vec3.scale(this._n, this.EPSILON))
+        let newp = Vec3.add(ip, Vec3.scale(this.n, this.EPSILON))
         p.set(newp)
         p.old.set(newp)
     }  

@@ -47,6 +47,7 @@ const camera = {
 }
 
 function initGL () {	
+
 	// ----------------- Setup ------------------ //
 
 	gl = canvas.getContext("experimental-webgl");
@@ -71,18 +72,17 @@ function initGL () {
 	let	sphere2 = new Sphere(1.2, 22, 22).translate(1.2, 3, -1);
 
 	//let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(), [0]);
-	let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
+	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
 	let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 	//let towelTightWide = new Towel(144, 48, .125).rotateX(-90).translate(0, 6, 4).applyCloth(new Cloth(), [0, 143]);
 	//let towelTighter = new Towel(96, 96, .0625).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 95]);
 
-
 	var initialisationCallback = () => {
 		if(triangle.points) triangle.translate(-.5, 1, -1);
 		if(icosa.points) icosa.translate(-1.5, 3, 0);
-		if(cube.points) cube.translate(1.5, 3.5, 0);
+		if(cube.points) cube.rotateY(90).translate(1.5, 3.5, -1);
 	}
-	objects = [towel, towelTight, sphere, sphere2]
+	objects = [towelTight, icosa, cube]
 
 
 

@@ -22,8 +22,8 @@
      * 0.) TEST: Normalen Generierung
      */
     {
-        let n = tri.getCCNormal()
-        console.assert(n.x==0 && n.y==1 &&n.z==0, "getCCNormal")
+        let n = tri.n;
+        console.assert(n.x==0 && n.y==1 &&n.z==0, "Normale")
     }
 
     /**

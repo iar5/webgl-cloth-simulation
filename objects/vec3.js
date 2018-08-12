@@ -4,7 +4,7 @@ class Vec3{
      * @param {Number} y 
      * @param {Number} z 
      */
-    constructor(x, y, z){
+    constructor(x=0, y=0, z=0){
         this.x = x;
         this.y = y;
         this.z = z;
@@ -41,6 +41,14 @@ class Vec3{
         this.x *= s;
         this.y *= s;
         this.z *= s;
+        return this;
+    }
+    multiplyMat3(m){
+        let temp = new Vec3();
+        temp.x = this.x*m[0] + this.y*m[1] + this.z*m[2];
+        temp.y = this.x*m[3] + this.y*m[4] + this.z*m[5];
+        temp.z = this.x*m[6] + this.y*m[7] + this.z*m[8];
+        this.set(temp)
         return this;
     }
     getCopie(){

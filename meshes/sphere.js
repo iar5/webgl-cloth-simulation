@@ -9,7 +9,7 @@ class Sphere extends Mesh{
         this.midPoint = new Vec3(0, 0, 0);
 
         this._generateBufferData();
-        this.points = this.generateVec3sFromContinousArray(this._vertices)
+        this.points = generateVec3sFromContinousArray(this._vertices)
     }
     _generateBufferData() {
         this._vertices = []; 
