@@ -60,8 +60,8 @@ function startApplication() {
 	
 	// ----------------- Scene Start ------------------ //
 
-	let cube = new Obj(resources["geometries/cube.json"], [1, 0, 0, .6]).translate(1.5, 3.5, -1);
-	let	icosa = new Obj(resources["geometries/icosa.json"], [0, 1, 0, .6]).translate(-1.5, 3, 0);
+	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .6]).translate(1.5, 3.5, -1);
+	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 1, 0, .6]).translate(-1.5, 3, 0);
 	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Obj(resources["geometries/human_806polys.json"]);
 	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
@@ -73,7 +73,7 @@ function startApplication() {
 	//let towelTightWide = new Towel(144, 48, .125).rotateX(-90).translate(0, 6, 4).applyCloth(new Cloth(), [0, 143]);
 	//let towelTighter = new Towel(96, 96, .0625).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 95]);
 
-	objects = [towel, icosa, cube]
+	objects = [towel, triangle, icosa, cube]
 
 
 
@@ -126,7 +126,6 @@ function startApplication() {
 		gl.compileShader(fshader);
 		gl.attachShader(program, fshader);
 		gl.linkProgram(program);
-
 		gl.useProgram(program);
 		bindAttribute(program, "vertexPositionAttribute", "vertexPosition");
 		bindAttribute(program, "vertexColorAttribute", "vertexColor");
@@ -142,7 +141,7 @@ function startApplication() {
 
 	// ---------------- Mouse controls ------------------- //
 	/*
-	* Mouse controls
+	* Controls
 	* by http://learningwebgl.com/blog/?p=1253
 	*/
 	canvas.onmousedown = function(event) {

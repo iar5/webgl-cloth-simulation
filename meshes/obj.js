@@ -7,16 +7,8 @@
  */
 
 class Obj extends Mesh {
-    constructor(resourceJSON, color) {
+    constructor(resourceJSON) {
         super(phongProgram, gl.TRIANGLES)
-        if(color instanceof Array) this.color = color;
-        else if(color == 'red') this.color = [1, 0, 0, 1]
-        else if(color == 'green') this.color = [0, 1, 0, 1]
-        else if(color == 'blue') this.color = [0, 0, 1, 1]
-        else if(color == 'yellow') this.color = [1, 1, 0, 1]
-        else if(color == 'cyan') this.color = [0, 1, 1, 1]
-        else if(color == 'magenta') this.color = [1, 0, 1, 1]
-        else this.color = [.5, .6, .5, 1]
 
         if(!resourceJSON.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
         this._generateBufferData(resourceJSON)
@@ -35,9 +27,10 @@ class Obj extends Mesh {
             this._indices = this._indices.concat(indices.map(f => f+indicesOffset));
             indicesOffset += mesh.vertices.length/3;
         }
-        this._colors = []
-        let r=this.color[0], g=this.color[1], b=this.color[2], a=this.color[3];
-        for(let i=0; i<this._vertices.length/3; i++) this._colors.push(r,g,b,a);
+        this._colors = [];
+        for(let i=0; i < this._vertices.length/3; i++){
+            this._colors.push(.5, .6, .5, 1)
+        }      
     }
     _generatePointsAndTriangles(){
         this.points = generateVec3sFromContinousArray(this._vertices)
