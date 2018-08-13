@@ -1,30 +1,22 @@
 /*
- * Async shader loading + application start
+ * Resource loading and application start
  */
 var urls = ['shader/phong.vs', 'shader/phong.fs', 'shader/basic.vs', 'shader/basic.fs', "geometries/cube.json", "geometries/human_806polys.json", "geometries/icosa.json", "geometries/triangleBig.json"]
 var resources = {};
 
-var starter = function(resource, url){
-	if(url.endsWith('.json')) resource = JSON.parse(resource);
-	resources[url] = resource;
-	if(Object.keys(resources).length == urls.length){
-		window.onload = startApplication();
-	}
-}
 urls.forEach(url => {
 	loadTextResource(url, (resource) => {
-		url.endsWith('.json') ? resource = JSON.parse(resource) : 0;
-		resources[url] = resource;
+		resources[url] = url.endsWith('.json') ? resource = JSON.parse(resource) : resource;
 		if(Object.keys(resources).length == urls.length){
-			console.log(resources)
 			window.onload = startApplication();
 		}
 	})
 });
 
 
+
 /*
- * Application initialisation + start
+ * Main application 
  */
 var gl;
 var phongProgram;
