@@ -13,8 +13,8 @@ var windX = 0.00;
 var windZ = 0.00;
 var drag = 0.99; 
 
-var defaultStiffness = 1
-var defaultIterations = 70; 
+var defaultStiffness = 0.3;
+var defaultIterations = 100; 
 
 
 
@@ -29,7 +29,7 @@ var defaultIterations = 70;
 class Cloth{
     constructor(stiffness=defaultStiffness, iterations=defaultIterations) {
         this.mesh = null;
-        this.mass = 1;
+        this.mass = 1; // wegnehmen
         this.iterations = iterations;
         this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
         this.iterationMode = "collectiv"
@@ -145,9 +145,14 @@ class Cloth{
             satisfied = true;
             for (let s of this.springs) {
 
-                if(this.iterationMode == 'single'){
+                if(this.iterationMode == 'fullIteration'){
+                    s.disctanceConstraint(this.springStrengths[s.type])
+                    satisfied = false;
+                }
+
+                else if(this.iterationMode == 'single'){
                     if(Math.abs(s.getElongationInPercent()) > this.stiffness){
-                        let elogation = s.disctanceConstraint(this.springStrengths[s.type])
+                        s.disctanceConstraint(this.springStrengths[s.type])
                         satisfied = false; 
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
@@ -156,10 +161,6 @@ class Cloth{
                     let elongation = s.disctanceConstraint(this.springStrengths[s.type])
                     if(Math.abs(elongation) > this.stiffness) satisfied = false; 
                 }   
-                else if(this.iterationMode == 'fullIteration'){
-                    satisfied = false;
-                    s.disctanceConstraint(this.springStrengths[s.type])
-                }
             }
 
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)

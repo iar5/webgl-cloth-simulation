@@ -7,10 +7,8 @@
  */
 
 class Obj extends Mesh {
-    constructor(src, color) {
+    constructor(resourceJSON, color) {
         super(phongProgram, gl.TRIANGLES)
-        this.src = src;
-
         if(color instanceof Array) this.color = color;
         else if(color == 'red') this.color = [1, 0, 0, 1]
         else if(color == 'green') this.color = [0, 1, 0, 1]
@@ -19,43 +17,38 @@ class Obj extends Mesh {
         else if(color == 'cyan') this.color = [0, 1, 1, 1]
         else if(color == 'magenta') this.color = [1, 0, 1, 1]
         else this.color = [.5, .6, .5, 1]
+
+        if(!resourceJSON.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
+        this._generateBufferData(resourceJSON)
+        this._generatePointsAndTriangles();
     }
 
-    initGl(gl, callback) {
-        loadJSONResource(this.src, (model) => {
-            console.log(model)
-            if(!model.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
-
-            this._vertices = []; 
-            this._normals = []; 
-            this._indices = [];
-            let indices, indicesOffset = 0;
-            for(let mesh of model.meshes){
-                this._vertices = this._vertices.concat(mesh.vertices);
-                this._normals = this._normals.concat(mesh.normals);
-                indices = [].concat.apply([], mesh.faces);
-                this._indices = this._indices.concat(indices.map(f => f+indicesOffset));
-                indicesOffset += mesh.vertices.length/3;
-            }
-            this._colors = []
-            let r=this.color[0], g=this.color[1], b=this.color[2], a=this.color[3];
-            for(let i=0; i<this._vertices.length/3; i++) this._colors.push(r,g,b,a);
-
-            this.points = generateVec3sFromContinousArray(this._vertices)
-            this.normals = [];
-            for(let i=0; i < this._normals.length; i+=3){
-                this.normals.push(new Vec3(this._normals[i], this._normals[i+1], this._normals[i+2]))
-            }
-            this.triangles = [];
-            for(let i=0; i < this._indices.length; i+=3){
-                this.triangles.push(new Triangle(
-                    this.points[this._indices[i]], 
-                    this.points[this._indices[i+1]], 
-                    this.points[this._indices[i+2]]
-                ))
-            }
-            super.initGl(gl, callback)
-        })
+    _generateBufferData(model){
+        this._vertices = []; 
+        this._normals = []; 
+        this._indices = [];
+        let indices, indicesOffset = 0;
+        for(let mesh of model.meshes){
+            this._vertices = this._vertices.concat(mesh.vertices);
+            this._normals = this._normals.concat(mesh.normals);
+            indices = [].concat.apply([], mesh.faces);
+            this._indices = this._indices.concat(indices.map(f => f+indicesOffset));
+            indicesOffset += mesh.vertices.length/3;
+        }
+        this._colors = []
+        let r=this.color[0], g=this.color[1], b=this.color[2], a=this.color[3];
+        for(let i=0; i<this._vertices.length/3; i++) this._colors.push(r,g,b,a);
+    }
+    _generatePointsAndTriangles(){
+        this.points = generateVec3sFromContinousArray(this._vertices)
+        this.triangles = [];
+        for(let i=0; i < this._indices.length; i+=3){
+            this.triangles.push(new Triangle(
+                this.points[this._indices[i]], 
+                this.points[this._indices[i+1]], 
+                this.points[this._indices[i+2]]
+            ))
+        }
     }
 
     /**

@@ -7,7 +7,7 @@ class Mesh{
     /**
      * GL
      */
-    initGl(gl, callback){
+    initGl(gl){
         this._positionBuffer = gl.createBuffer();
         this._positionBuffer.itemSize = 3;
         this._positionBuffer.numItems = this._vertices.length / 3;
@@ -28,7 +28,6 @@ class Mesh{
         this._normalBuffer.numItems = this._normals.length / 3;
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
-        callback();
     }
     draw(gl){
         gl.useProgram(this.program);

@@ -1,26 +1,30 @@
 /*
  * Async shader loading + application start
  */
-var phong_vs, phong_fs, basic_vs, basic_fs
+var urls = ['shader/phong.vs', 'shader/phong.fs', 'shader/basic.vs', 'shader/basic.fs', "geometries/cube.json", "geometries/human_806polys.json", "geometries/icosa.json", "geometries/triangleBig.json"]
+var resources = {};
 
-loadTextResource("shader/phong.vs", function(text){
-	phong_vs = text;
-	loadTextResource("shader/phong.fs", function(text){
-		phong_fs = text;
-		loadTextResource("shader/basic.vs", function(text){
-			basic_vs = text
-			loadTextResource("shader/basic.fs", function(text){
-				basic_fs = text;
-				window.onload = initGL();
-			})
-		})
+var starter = function(resource, url){
+	if(url.endsWith('.json')) resource = JSON.parse(resource);
+	resources[url] = resource;
+	if(Object.keys(resources).length == urls.length){
+		window.onload = startApplication();
+	}
+}
+urls.forEach(url => {
+	loadTextResource(url, (resource) => {
+		url.endsWith('.json') ? resource = JSON.parse(resource) : 0;
+		resources[url] = resource;
+		if(Object.keys(resources).length == urls.length){
+			console.log(resources)
+			window.onload = startApplication();
+		}
 	})
-})
-
+});
 
 
 /*
- * Main Application
+ * Application initialisation + start
  */
 var gl;
 var phongProgram;
@@ -46,8 +50,8 @@ const camera = {
 	animated: false
 }
 
-function initGL () {	
 
+function startApplication() {	
 	// ----------------- Setup ------------------ //
 
 	gl = canvas.getContext("experimental-webgl");
@@ -64,47 +68,28 @@ function initGL () {
 	
 	// ----------------- Scene Start ------------------ //
 
-	let cube = new Obj("geometries/cube.json", [1, 0, 0, .6]);
-	let	human = new Obj("geometries/human_806polys.json");
-	let	icosa = new Obj("geometries/icosa.json", [0, 1, 0, .6]);
-	let triangle = new Obj("geometries/triangleBig.json");
+	let cube = new Obj(resources["geometries/cube.json"], [1, 0, 0, .6]).translate(1.5, 3.5, -1);
+	let	icosa = new Obj(resources["geometries/icosa.json"], [0, 1, 0, .6]).translate(-1.5, 3, 0);
+	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
+	let	human = new Obj(resources["geometries/human_806polys.json"]);
 	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
 	let	sphere2 = new Sphere(1.2, 22, 22).translate(1.2, 3, -1);
 
 	//let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(), [0]);
-	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
-	let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
+	let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
+	//let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 	//let towelTightWide = new Towel(144, 48, .125).rotateX(-90).translate(0, 6, 4).applyCloth(new Cloth(), [0, 143]);
 	//let towelTighter = new Towel(96, 96, .0625).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 95]);
 
-	var initialisationCallback = () => {
-		if(triangle.points) triangle.translate(-.5, 1, -1);
-		if(icosa.points) icosa.translate(-1.5, 3, 0);
-		if(cube.points) cube.rotateY(90).translate(1.5, 3.5, -1);
-	}
-	objects = [towelTight, icosa, cube]
-
+	objects = [towel, icosa, cube]
 
 
 
 	
 	// ----------------- Scene End ------------------ //
 
-	var starter = function(count){
-		var counter = count;
-		return function(){
-			counter--;
-			if(counter == 0) start();
-		}
-	}(objects.length);
-	objects.forEach(o => {
-		o.initGl(gl, starter)
-	});
-
-	function start(){
-		initialisationCallback()
-		loop();
-	}
+	objects.forEach(o => o.initGl(gl));
+	loop();
 
 	function loop() {
 		if(camera.animated) animateCamera();
@@ -135,21 +120,8 @@ function initGL () {
 	}
 
 	function initShaders() {
-		basicProgram = createProgram(basic_vs, basic_fs)
-		gl.useProgram(basicProgram);
-		bindAttribute(basicProgram, "vertexPositionAttribute", "vertexPosition");
-		bindAttribute(basicProgram, "vertexColorAttribute", "vertexColor");
-		bindAttribute(basicProgram, "vertexNormalAttribute", "vertexNormal");
-		basicProgram.projMatrixUniform = gl.getUniformLocation(basicProgram, "projectionMatrix");
-		basicProgram.mvMatrixUniform = gl.getUniformLocation(basicProgram, "mvMatrix");
-
-		phongProgram = createProgram(phong_vs, phong_fs)
-		gl.useProgram(phongProgram);
-		bindAttribute(phongProgram, "vertexPositionAttribute", "vertexPosition");
-		bindAttribute(phongProgram, "vertexColorAttribute", "vertexColor");
-		bindAttribute(phongProgram, "vertexNormalAttribute", "vertexNormal");
-		phongProgram.projMatrixUniform = gl.getUniformLocation(phongProgram, "projectionMatrix");
-		phongProgram.mvMatrixUniform = gl.getUniformLocation(phongProgram, "mvMatrix");
+		basicProgram = createProgram(resources['shader/basic.vs'], resources['shader/basic.fs']);
+		phongProgram = createProgram(resources['shader/phong.vs'], resources['shader/phong.fs']);
 	}
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();
@@ -162,6 +134,13 @@ function initGL () {
 		gl.compileShader(fshader);
 		gl.attachShader(program, fshader);
 		gl.linkProgram(program);
+
+		gl.useProgram(program);
+		bindAttribute(program, "vertexPositionAttribute", "vertexPosition");
+		bindAttribute(program, "vertexColorAttribute", "vertexColor");
+		bindAttribute(program, "vertexNormalAttribute", "vertexNormal");
+		program.projMatrixUniform = gl.getUniformLocation(program, "projectionMatrix");
+		program.mvMatrixUniform = gl.getUniformLocation(program, "mvMatrix");
 		return program;
 	}
 	function bindAttribute(program, programAttributeName, attributeName){
