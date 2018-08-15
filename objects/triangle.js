@@ -152,38 +152,4 @@ class Triangle {
         else if(dbc < dca)          return new Contact(eip, vbc, dbc);
         else                        return new Contact(eip, vca, dca); 
     }
-
-    /**
-     * @param {Triangle} t
-     */
-    resolveTriangleCollision(t){
-        // Edge-Triangle Intersection
-        let c_ab = this.getSegmentContact(t.a, t.b) || NaN; // null wäre nerviger zu prüfen
-        let c_bc = this.getSegmentContact(t.b, t.c) || NaN;
-        let c_ca = this.getSegmentContact(t.c, t.a) || NaN;
-        let resolvingContact;
-        let resolvingEdge1;
-        let resolvingEdge2;
-
-        if(c_ab.depth > c_bc && c_ab.depth > c_ca.depth) {
-            resolvingEdge1 = t.a;
-            resolvingEdge2 = t.b;
-            resolvingContact = c_ab
-        }
-        else if(c_bc.depth > c_ca.depth)  {
-            resolvingEdge1 = t.b;
-            resolvingEdge2 = t.c;
-            resolvingContact = c_bc
-        }              
-        else if(!isNaN(c_ca)) {
-            resolvingEdge1 = t.c;
-            resolvingEdge2 = t.a;
-            resolvingContact = c_ca     
-        }                           
-        else return;
-
-        let impuls = Vec3.scale(resolvingContact.normal, resolvingContact.depth + this.EPSILON);
-        resolvingEdge1.add(impuls)
-        resolvingEdge2.add(impuls)
-    }
 }

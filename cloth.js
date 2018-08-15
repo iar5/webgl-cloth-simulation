@@ -38,18 +38,6 @@ class Cloth{
             'shear' : 1,
             'bend' : 0.5
         }
-
-        let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
-        //let drawFolder = guiFolder.addFolder('draw options');
-        //drawFolder.add(this, 'mode', ["filled, grid", "srings"]);
-        //drawFolder.add(this, 'style', ["light", "basic", "elongation"]);
-        let springFolder = guiFolder.addFolder('spring strengths');
-        springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
-        springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
-        springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.1);
-        guiFolder.add(this, 'iterations', 0, 200).step(1);
-        guiFolder.add(this, 'stiffness', 0, 2);
-        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
     }
     
     /**
@@ -113,15 +101,29 @@ class Cloth{
                     }
                 }
             }
+            this._setupGui();
         }
         else throw Error("Mesh not suitable for cloth simulation");
+    }
+    _setupGui(){
+        let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
+        let drawFolder = guiFolder.addFolder('draw options');
+        drawFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES});
+
+        //drawFolder.add(this, 'style', ["light", "basic", "elongation"]);
+        let springFolder = guiFolder.addFolder('spring strengths');
+        springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
+        springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
+        springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.1);
+        guiFolder.add(this, 'iterations', 0, 200).step(1);
+        guiFolder.add(this, 'stiffness', 0, 2);
+        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
     }
     
     pin(pointIndices){
         for(let indice of pointIndices) this.mesh.points[indice].pin();
     }
     
-
     /** 
      * Simulation loop
      */

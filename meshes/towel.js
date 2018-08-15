@@ -5,8 +5,8 @@ class Towel extends Mesh {
         this.amountY = amountY;
         this.density = density;
         this._generateBufferData();
-        this._generateIndices()
         this._generatePointsAndTriangles();
+        this._changeIndicesFromDrawMode();
     }
 
     _generateBufferData() {
@@ -35,31 +35,32 @@ class Towel extends Mesh {
         for (let i = 0; i < this._vertices.length / 3; i++) {
             this._colors.push(.5, .7, .5, 1)
         }
-    }
-    _generateIndices() {
         /*
         * Triangle INDICES: (CounterClockwise)
         * 1 3 .  |  . 3 .  |  . 1 3  |  . . 3
         * 2 . .  |  1 2 .  |  . 2 .  |  . 1 2
         */
-        this._indices = [];
-        for (let y = 0; y < this.amountY; y++) {
+       this._triangleIndices = [];
+       for (let y = 0; y < this.amountY; y++) {
+           for (let x = 0; x < this.amountX; x++) {
+                if (y + 1 == this.amountY) break;
+                if (x + 1 == this.amountX) continue;
+                this._triangleIndices.push(y * this.amountX + x, (y + 1) * this.amountX + x, y * this.amountX + x + 1);
+                this._triangleIndices.push((y + 1) * this.amountX + x, (y + 1) * this.amountX + x + 1, y * this.amountX + x + 1);
+           }
+       }
+       this._lineIndices = [];
+       for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
-                if (this.drawMode == gl.TRIANGLES) {
-                    if (y + 1 == this.amountY) break;
-                    if (x + 1 == this.amountX) continue;
-                    this._indices.push(y * this.amountX + x, (y + 1) * this.amountX + x, y * this.amountX + x + 1);
-                    this._indices.push((y + 1) * this.amountX + x, (y + 1) * this.amountX + x + 1, y * this.amountX + x + 1);
-                } 
-                else if (this.drawMode == gl.LINES) {
-                    if (y + 1 < this.amountY) this._indices.push(y * this.amountX + x, (y + 1) * this.amountX + x);
-                    if (x + 1 < this.amountX) this._indices.push(y * this.amountX + x, y * this.amountX + x + 1);
-                    //if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
-                    //if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
-                }
+                if (y + 1 < this.amountY) this._lineIndices.push(y * this.amountX + x, (y + 1) * this.amountX + x);
+                if (x + 1 < this.amountX) this._lineIndices.push(y * this.amountX + x, y * this.amountX + x + 1);
+                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
+                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
+            
             }
         }
     }
+
     _generatePointsAndTriangles() {
         this.points = generateVec3sFromContinousArray(this._vertices)
         this.triangles = [];
@@ -71,6 +72,11 @@ class Towel extends Mesh {
                 this.triangles.push(new Triangle(this.points[(y + 1) * this.amountX + x], this.points[(y + 1) * this.amountX + x + 1], this.points[y * this.amountX + x + 1]));
             }
         }
+    }
+
+    _changeIndicesFromDrawMode(){
+        if (this.drawMode == gl.LINES) this._indices = this._lineIndices;
+        else if (this.drawMode == gl.TRIANGLES) this._indices = this._triangleIndices;
     }
 
     /**
@@ -86,16 +92,7 @@ class Towel extends Mesh {
     }
     update(){
         this.cloth.updateMesh();
+        this._changeIndicesFromDrawMode();
         super.update();
     }
-
-    /**
-     * @param {*} drawMode WebGL Zeichen Modus
-     * @param {bool} showSprings insofern drawMode == gl.Lines: ob auch springs oder nur wireframes angezeigt werden sollen
-     */
-    setDrawMode(drawMode, showSprings) {
-        if (drawMode == gl.TRIANGLES || drawMode == gl.LINES) this.drawMode = drawMode;
-        this._generateIndices(showSprings)
-    }
-
 }

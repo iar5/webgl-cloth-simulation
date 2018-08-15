@@ -68,14 +68,6 @@ class Obj extends Mesh {
             }
         }
     }
-    resolveTriangleCollision(softTriangles){
-        for (let t of this.triangles) {
-            for (let st of softTriangles) {
-                if(!t.testTrianglSphere(st)) continue;
-                else t.resolveTriangleCollision(st);
-            }
-        }
-    }
 }
 
 
