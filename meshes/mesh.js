@@ -106,20 +106,9 @@ class Mesh{
      * Normalen der Dreiecke updaten 
      * Nur für dynamische Objekte wie Cloth
      */
-    recalculateNormals(){
+    recalculateTriangleNormals(){
         for(let tri of this.triangles){
             tri.recalculateNormal()
-        }
-    }
-
-    /**
-     * Normalen + andere vorberechnete Daten neu berechnen
-     * Für statische Objekte 
-     */
-    recalculateStaticPrecalculatios(){
-        if(this instanceof Sphere) return
-        for(let tri of this.triangles){
-            tri.recalculateStaticPrecalculatios()
         }
     }
 
@@ -134,7 +123,6 @@ class Mesh{
             if(pos.old) pos.old.add(temp)
         });
         this.updateVerticesFromPoints();
-        this.recalculateStaticPrecalculatios();
         return this; 
     }
 
@@ -163,7 +151,7 @@ class Mesh{
         }
         this.updateVerticesFromPoints();
         this.updateNormals(normals);
-        this.recalculateStaticPrecalculatios();
+        this.recalculateTriangleNormals();
         return this;
     }
 }

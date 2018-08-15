@@ -36,7 +36,7 @@ class Towel extends Mesh {
             this._colors.push(.5, .7, .5, 1)
         }
     }
-    _generateIndices(showSprings=false) {
+    _generateIndices() {
         /*
         * Triangle INDICES: (CounterClockwise)
         * 1 3 .  |  . 3 .  |  . 1 3  |  . . 3
@@ -54,11 +54,8 @@ class Towel extends Mesh {
                 else if (this.drawMode == gl.LINES) {
                     if (y + 1 < this.amountY) this._indices.push(y * this.amountX + x, (y + 1) * this.amountX + x);
                     if (x + 1 < this.amountX) this._indices.push(y * this.amountX + x, y * this.amountX + x + 1);
-
-                    if (showSprings) {
-                        if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
-                        if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
-                    }
+                    //if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
+                    //if (x + 1 < this.amountX && y + 1 < this.amountY) this._indices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
                 }
             }
         }

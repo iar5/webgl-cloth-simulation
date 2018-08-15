@@ -14,7 +14,7 @@ var windZ = 0.00;
 var drag = 0.99; 
 
 var defaultStiffness = 0.3;
-var defaultIterations = 50; 
+var defaultIterations = 10; 
 
 
 
@@ -32,8 +32,7 @@ class Cloth{
         this.mass = 1; // wegnehmen
         this.iterations = iterations;
         this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
-        this.drawStyle = "filled"
-        this.iterationMode = "collectiv"
+        this.iterationMode = "fullIteration"
         this.springStrengths = {
             'structural' : 1,
             'shear' : 1,
@@ -129,13 +128,14 @@ class Cloth{
     updateMesh(){
         this._applyExternalForces();
         this._satisfyConstraints();
-        this.mesh.recalculateNormals();
+        this.mesh.recalculateTriangleNormals();
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
         //this.mesh._colors = this.getColorsFromElongation();
     }
 
     getColorsFromElongation(){
+        // TODO Basic Shader verwenden
         let colors = [];
         for(let p of this.mesh.points){
             let elongation = 0;
@@ -146,7 +146,7 @@ class Cloth{
                 springCount++;
             }
             const value = elongation/springCount;
-            const limit = 0.01 // 1 == 100%
+            const limit = 0.1 // 1 == 100%
             let rgb = new Vec3(
                 value > limit ? limit : value < 0 ? 0 : value, 
                 Math.abs(limit-value),

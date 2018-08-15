@@ -168,4 +168,12 @@
         //let contact = tri.resolveContinousPointCollision(a, b)
         //console.assert(Vec3.equals(contact.point, new Vec3(0,0,0)))
     }
+
+    {
+        console.assert(tri.isPointInFront(new Vec3(0, 0.00000000001, 0)))
+        console.assert(!tri.isPointInFront(new Vec3(0, -0.00000000001, 0)))
+    }
+    {
+        console.assert(tri.moellerTrumbore(new Vec3(1, 0.00001, 0), new Vec3(-1, -0.00001, 0)))
+    }
 }

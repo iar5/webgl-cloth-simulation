@@ -1,10 +1,3 @@
-/**
- * TOOD
- * radius, catenoid, etc. ebenso vorberechnen 
- * Problem: nach jeder Korrektur eines Punktes ändern sich auch die Attribute seiner Dreiecke, also funktioniert Vorberechnung 1x pro Simulationsschitt nicht?
- * Unterscheidung ob dynamisch/statisches Dreieck sinnvoll?
- */
-
 class Triangle {
     /**
      * @param {Vec3} a Ecke 1
@@ -16,13 +9,18 @@ class Triangle {
         this.b = b;
         this.c = c;
         this.EPSILON = 0.0001
-        this.recalculateStaticPrecalculatios();
+        this.recalculateNormal();
     }
 
     hasPoint(p){
         return p == this.a || p == this.b || p == this.c;
     }
 
+    /**
+     * Werte evtl. vorberechnen?
+     * Problem: nach jeder Korrektur eines Punktes ändern sich auch die Attribute seiner Dreiecke, also funktioniert Vorberechnung 1x pro Simulationsschitt nicht?
+     * Unterscheidung ob dynamisch/statisches Dreieck sinnvoll?
+     */
     getCatenoid(){
         let a=this.a, b=this.b, c=this.c;
         return new Vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
@@ -31,27 +29,10 @@ class Triangle {
         let a=this.a, b=this.b, c=this.c;
         return Math.max(Math.max(Vec3.sub(a,b).getLength(), Vec3.sub(b,c).getLength()), Vec3.sub(c,a).getLength()) / 2
     }
-
-    /**
-     * Counter clockwise normal calculation
-     * Für dynamische Dreiecke die nicht die vorberechnete Daten benutzen
-     */
     recalculateNormal(){
         let edge1 = Vec3.sub(this.b, this.a)
         let edge2 = Vec3.sub(this.c, this.a)
         this.n = Vec3.normalize(Vec3.cross(edge1, edge2));
-    }
-
-    /**
-     * VORBERECHNUNETE DATEN 
-     * Für Möllertrumbore bei statischen Objekte 
-     */
-    recalculateStaticPrecalculatios(){
-        this._edge1 = Vec3.sub(this.b, this.a)
-        this._edge2 = Vec3.sub(this.c, this.a)
-        this.n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
-        this._pvec = Vec3.cross(Vec3.scale(this.n, -1), this._edge2)
-        this._det = Vec3.dot(this._edge1, this._pvec)
     }
 
     /**
@@ -71,30 +52,19 @@ class Triangle {
     /**
      * MÖLLER-TRUMBORE Ray-Triangle Intersection Algorithmus
      * @param {Vec3} o Ortsvektor des Strahles
-     * @param {Vec3|?} dir Richtungsvektor des Strahles | Richtungsvektor ist Lotgerade (dir = -n)
+     * @param {Vec3} dir Richtungsvektor des Strahles 
      * @returns {Number} Skalar t
      */
     moellerTrumbore(o, dir){
-        let EPSILON=this.EPSILON, edge1, edge2, pvec, det;
-        if(dir == undefined){
-            // Point-Triangle mit Lotgerade und vorberechneten Daten
-            edge1 = this._edge1;
-            edge2 = this._edge2;
-            pvec = this._pvec;
-            det = this._det;
-            dir = Vec3.scale(this.n, -1)
-        }
-        else {
-            // Edge-Triangle (Costum Ray)
-            edge1 = Vec3.sub(this.b, this.a)
-            edge2 = Vec3.sub(this.c, this.a)
-            pvec = Vec3.cross(dir, edge2);
-            det = Vec3.dot(edge1, pvec); 
-        }
+        let edge1 = Vec3.sub(this.b, this.a)
+        let edge2 = Vec3.sub(this.c, this.a)
+        let pvec = Vec3.cross(dir, edge2);
+        let det = Vec3.dot(edge1, pvec); 
+    
         // det < 0 : Ray points away, negative t expected
         // det > 0 : positive t expected
         // det == 0 : Ray runs parallel to the plane of the triangle -> no t
-        if (-EPSILON < det && det < EPSILON) return null;
+        if (-this.EPSILON < det && det < this.EPSILON) return null;
         let inv_det = 1/det
         let tvec = Vec3.sub(o, this.a);
         let u = Vec3.dot(tvec, pvec) * inv_det;
@@ -107,18 +77,19 @@ class Triangle {
 
     /**
      * Idee: Punkt hinter Schnittpunkt während alter noch davor (in dir Richtung) -> Durchdringung
-     * Wird (bis jetzt) nur auf statischen Dreiecken aufgerufen, daher vorberechnete Daten
+     * Anschließend gucken ob Schnittpunkt existiert 
      * @param {Vec3} p 
-     */
+     */ 
     resolvePartikelCollision(p) { 
-        // 1. Positive Skalierung in dir-Richtung: Punkt wäre vor Ebene -> keine Durchdringung
-        let t = this.moellerTrumbore(p) // not needed to pass over dir, its alredy precalculated in there 
-        if(t == null || t > 0) return null; 
-        let dir  = Vec3.scale(this.n, -1);
-        let ip   = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
+        let bp = this.isPointInFront(p)
+        let bpold = this.isPointInFront(p.old);
+        if(!(!bp && bpold)) return null; 
+        
+        let dir = Vec3.sub(p, p.old)
+        let t = this.moellerTrumbore(p, dir)
+        if(t == null) return;
+        let ip = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
-        // 2. Abstand zur alten Position kleiner als zur Ebene: beide sind hinter der Ebene -> keine Durchdringung
-        if(Vec3.dist(p, ip) > Vec3.dist(p, p.old)) return null; 
         let newp = Vec3.add(ip, Vec3.scale(this.n, this.EPSILON))
         p.set(newp)
         p.old.set(newp)
@@ -138,6 +109,16 @@ class Triangle {
         if(t > 1) t = 1;
         return Vec3.add(a, Vec3.scale(ab, t)) 
     }
+
+    /**
+     * https://www.opengl.org/discussion_boards/showthread.php/183759-Finding-if-a-point-is-in-front-or-behind-a-plane
+     * @param {Point} p 
+     */
+    isPointInFront(p){
+        let v = Vec3.sub(p, this.a)
+        let dot = Vec3.dot(v, this.n)
+        return dot > 0
+    }   
 
     /**
      * 
