@@ -8,6 +8,7 @@ class Mesh{
      * GL
      */
     initGl(gl){
+        this._colorsBackup = this._colors; // Zwischenspeicher für Towel damit nach colorMode wieder gewechselt werden kann
         this._positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW);
@@ -60,11 +61,11 @@ class Mesh{
         else if(color == 'cyan') color = [0, 1, 1, 1]
         else if(color == 'magenta') color = [1, 0, 1, 1]
         else throw new Error('Color ' + color + ' not valid')
-
         this._colors = [];
         for(let i=0; i<this._vertices.length/3; i++){
             this._colors.push(color[0], color[1], color[2], color[3]);
         }
+        this._colorsBackup = this._colors; 
         return this;
     }
 

@@ -38,6 +38,7 @@ class Cloth{
             'shear' : 1,
             'bend' : 0.5
         }
+        this.heatMap = false;
     }
     
     /**
@@ -48,78 +49,86 @@ class Cloth{
      */
     applyMesh(mesh){
         if(mesh instanceof Towel){
-            let towel=this.mesh=mesh;
-            let amountY=towel.amountY, amountX=towel.amountX
-            let particelMass = this.mass
-
-            let points = towel.points;
-            for (let i=0; i < points.length; i++) {
-                points[i] = new Particle(points[i], particelMass)
-            }
-            let triangles = towel.triangles = [];
-            for (let y=0; y < amountY; y++) {
-                for (let x = 0; x < amountX; x++) {
-                    if (y + 1 == amountY) break;
-                    if (x + 1 == amountX) continue;
-                    triangles.push(new Triangle(points[y*amountX + x], points[(y+1)*amountX + x], points[y*amountX + x+1]));
-                    triangles.push(new Triangle(points[(y+1)*amountX + x], points[(y+1)*amountX + x+1], points[y*amountX + x+1]));
-                }
-            }
-            let springs = this.springs = [];
-            for (let y=0; y < amountY; y++) {
-                for (let x=0; x < amountX; x++) {
-                    /* strucutral springs */
-                    if (x+1 < amountX) {
-                        let p0 = points[y*amountX + x],
-                            p1 = points[y*amountX + x+1];
-                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
-                        }
-                    if (y+1 < amountY) {
-                        let p0 = points[y*amountX + x],
-                            p1 = points[(y+1)*amountX + x];
-                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
-                        }
-                    /* shear springs */
-                    if (x+1 < amountX && y+1 < amountY) {
-                        let p0 = points[y*amountX + x],
-                            p1 = points[(y+1)*amountX + x+1],
-                            p2 = points[y*amountX + x+1],
-                            p3 = points[(y+1)*amountX + x];
-                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'shear'));
-                        springs.push(new Spring(p2, p3, Vec3.dist(p2, p3), 'shear'));
-                    }
-                    /* bend springs */
-                    if(x+2 < amountX) {
-                        let p0 = points[y*amountX + x],
-                            p1 = points[y*amountX + x+2];
-                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
-                        }
-                    if(y+2 < amountY) {
-                        let p0 = points[y*amountX + x],
-                            p1 = points[(y+2)*amountX + x];
-                        springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
-                    }
-                }
-            }
+            this.mesh = mesh;
+            this._setupSpringMass()
             this._setupGui();
         }
         else throw Error("Mesh not suitable for cloth simulation");
     }
+    _setupSpringMass(){
+        let towel=this.mesh;
+        let amountY=towel.amountY, amountX=towel.amountX
+        let particelMass = this.mass
+
+        let points = towel.points;
+        for (let i=0; i < points.length; i++) {
+            points[i] = new Particle(points[i], particelMass)
+        }
+        let triangles = towel.triangles = [];
+        for (let y=0; y < amountY; y++) {
+            for (let x = 0; x < amountX; x++) {
+                if (y + 1 == amountY) break;
+                if (x + 1 == amountX) continue;
+                triangles.push(new Triangle(points[y*amountX + x], points[(y+1)*amountX + x], points[y*amountX + x+1]));
+                triangles.push(new Triangle(points[(y+1)*amountX + x], points[(y+1)*amountX + x+1], points[y*amountX + x+1]));
+            }
+        }
+        let springs = this.springs = [];
+        for (let y=0; y < amountY; y++) {
+            for (let x=0; x < amountX; x++) {
+                /* strucutral springs */
+                if (x+1 < amountX) {
+                    let p0 = points[y*amountX + x],
+                        p1 = points[y*amountX + x+1];
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
+                    }
+                if (y+1 < amountY) {
+                    let p0 = points[y*amountX + x],
+                        p1 = points[(y+1)*amountX + x];
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
+                    }
+                /* shear springs */
+                if (x+1 < amountX && y+1 < amountY) {
+                    let p0 = points[y*amountX + x],
+                        p1 = points[(y+1)*amountX + x+1],
+                        p2 = points[y*amountX + x+1],
+                        p3 = points[(y+1)*amountX + x];
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'shear'));
+                    springs.push(new Spring(p2, p3, Vec3.dist(p2, p3), 'shear'));
+                }
+                /* bend springs */
+                if(x+2 < amountX) {
+                    let p0 = points[y*amountX + x],
+                        p1 = points[y*amountX + x+2];
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
+                    }
+                if(y+2 < amountY) {
+                    let p0 = points[y*amountX + x],
+                        p1 = points[(y+2)*amountX + x];
+                    springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
+                }
+            }
+        }
+    }
     _setupGui(){
         let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
+        guiFolder.add(this, 'iterations', 0, 200).step(1);
+        guiFolder.add(this, 'stiffness', 0, 2);
+        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
         let drawFolder = guiFolder.addFolder('draw options');
-        drawFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES});
-
-        //drawFolder.add(this, 'style', ["light", "basic", "elongation"]);
+        drawFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
+        drawFolder.add(this, 'heatMap');
+        drawFolder.open()
         let springFolder = guiFolder.addFolder('spring strengths');
         springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
         springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
         springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.1);
-        guiFolder.add(this, 'iterations', 0, 200).step(1);
-        guiFolder.add(this, 'stiffness', 0, 2);
-        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
     }
     
+    /**
+     * Array mit Indices der Partikel, die von Kräften unbeachtetn sein sollen
+     * @param {Array} pointIndices 
+     */
     pin(pointIndices){
         for(let indice of pointIndices) this.mesh.points[indice].pin();
     }
@@ -133,7 +142,9 @@ class Cloth{
         this.mesh.recalculateTriangleNormals();
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
-        //this.mesh._colors = this.getColorsFromElongation();
+        
+        if(this.heatMap) this.mesh._colors = this.getColorsFromElongation();
+        else this.mesh._colors = this.mesh._colorsBackup;
     }
 
     getColorsFromElongation(){
@@ -147,12 +158,12 @@ class Cloth{
                 elongation += s.getLastElongation();
                 springCount++;
             }
-            const value = elongation/springCount;
-            const limit = 0.1 // 1 == 100%
+            const val = elongation/springCount;
+            const limit = this.stiffness;
             let rgb = new Vec3(
-                value > limit ? limit : value < 0 ? 0 : value, 
-                Math.abs(limit-value),
-                Math.abs(value < -limit ? -limit : value > 0 ? 0 : value), 
+                clamp(val/limit),
+                Math.abs(limit-val),
+                clamp(val/-limit)
             ).normalize()
 
             colors.push(rgb.x, rgb.y, rgb.z, 1)

@@ -75,8 +75,8 @@ class Towel extends Mesh {
     }
 
     _changeIndicesFromDrawMode(){
-        if (this.drawMode == gl.LINES) this._indices = this._lineIndices;
-        else if (this.drawMode == gl.TRIANGLES) this._indices = this._triangleIndices;
+        if (this.drawMode == gl.TRIANGLES) this._indices = this._triangleIndices;
+        else this._indices = this._lineIndices;
     }
 
     /**
