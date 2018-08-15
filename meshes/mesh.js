@@ -43,10 +43,20 @@ class Mesh{
         gl.vertexAttribPointer(this.program.vertexNormalAttribute, this._normalBuffer.itemSize, gl.FLOAT, gl.TRUE, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._colors), gl.STATIC_DRAW);
         gl.vertexAttribPointer(this.program.vertexColorAttribute, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), gl.STATIC_DRAW);
         gl.drawElements(this.drawMode, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    }
+
+    applyUpdateCallback(callack){
+        this.animator = callack;
+        return this;
+    }
+    update(){
+        if(this.animator) this.animator();
     }
 
     setColor(color){
@@ -67,32 +77,11 @@ class Mesh{
     }
 
     /**
-     * Animator
-     * @param {Cloth} cloth
-     * @param {Array} pinArr Indices der Partikel die nach der Initierung des Cloth gepinned werden
-     */
-    applyCloth(cloth, pinArr){
-        cloth.applyMesh(this);
-        this.cloth = cloth;
-        if(pinArr) cloth.pin(pinArr)
-        return this;
-    }
-    applyUpdateCallback(callack){
-        this.animator = callack;
-        return this;
-    }
-    update(){
-        if(this.cloth) this.cloth.updateMesh();
-        if(this.animator) this.animator();
-    }
-
-    /**
      * Update Buffer Vertices mit neuen Partikelpositionen
      */
     updateVerticesFromPoints() {
         this._vertices = generateContinousArrayFromVec3s(this.points);
     }
-
     updateNormals(normals) {
         this._normals = generateContinousArrayFromVec3s(normals);
     }
@@ -117,7 +106,7 @@ class Mesh{
      * Normalen der Dreiecke updaten 
      * Nur für dynamische Objekte wie Cloth
      */
-    recalculateTriangleNormals(){
+    recalculateNormals(){
         for(let tri of this.triangles){
             tri.recalculateNormal()
         }
@@ -127,9 +116,10 @@ class Mesh{
      * Normalen + andere vorberechnete Daten neu berechnen
      * Für statische Objekte 
      */
-    recalculateTrianglePrecalculations(){
+    recalculateStaticPrecalculatios(){
+        if(this instanceof Sphere) return
         for(let tri of this.triangles){
-            tri.recalculatePrecalculatio()
+            tri.recalculateStaticPrecalculatios()
         }
     }
 
@@ -144,6 +134,7 @@ class Mesh{
             if(pos.old) pos.old.add(temp)
         });
         this.updateVerticesFromPoints();
+        this.recalculateStaticPrecalculatios();
         return this; 
     }
 
@@ -172,7 +163,7 @@ class Mesh{
         }
         this.updateVerticesFromPoints();
         this.updateNormals(normals);
-        this.recalculateTrianglePrecalculations();
+        this.recalculateStaticPrecalculatios();
         return this;
     }
 }

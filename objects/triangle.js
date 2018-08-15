@@ -1,3 +1,10 @@
+/**
+ * TOOD
+ * radius, catenoid, etc. ebenso vorberechnen 
+ * Problem: nach jeder Korrektur eines Punktes ändern sich auch die Attribute seiner Dreiecke, also funktioniert Vorberechnung 1x pro Simulationsschitt nicht?
+ * Unterscheidung ob dynamisch/statisches Dreieck sinnvoll?
+ */
+
 class Triangle {
     /**
      * @param {Vec3} a Ecke 1
@@ -8,24 +15,21 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        this.recalculatePrecalculatio();
+        this.EPSILON = 0.0001
+        this.recalculateStaticPrecalculatios();
     }
 
     hasPoint(p){
         return p == this.a || p == this.b || p == this.c;
     }
 
-    /**
-     * VORBERECHNUNETE DATEN 
-     * Für Möllertrumbore bei für statische Objekte 
-     */
-    recalculatePrecalculatio(){
-        this.EPSILON = 0.0001
-        this._edge1 = Vec3.sub(this.b, this.a)
-        this._edge2 = Vec3.sub(this.c, this.a)
-        this.n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
-        this._pvec = Vec3.cross(Vec3.scale(this.n, -1), this._edge2)
-        this._det = Vec3.dot(this._edge1, this._pvec)
+    getCatenoid(){
+        let a=this.a, b=this.b, c=this.c;
+        return new Vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
+    }
+    getRadius(){
+        let a=this.a, b=this.b, c=this.c;
+        return Math.max(Math.max(Vec3.sub(a,b).getLength(), Vec3.sub(b,c).getLength()), Vec3.sub(c,a).getLength()) / 2
     }
 
     /**
@@ -39,6 +43,18 @@ class Triangle {
     }
 
     /**
+     * VORBERECHNUNETE DATEN 
+     * Für Möllertrumbore bei statischen Objekte 
+     */
+    recalculateStaticPrecalculatios(){
+        this._edge1 = Vec3.sub(this.b, this.a)
+        this._edge2 = Vec3.sub(this.c, this.a)
+        this.n = Vec3.normalize(Vec3.cross(this._edge1, this._edge2))
+        this._pvec = Vec3.cross(Vec3.scale(this.n, -1), this._edge2)
+        this._det = Vec3.dot(this._edge1, this._pvec)
+    }
+
+    /**
      * Testet ob Kollision überhaupt mlgich ist mit einer Bounding Sphere 
      * Neuberechnung von Catenoid wegen Transformationen der Punkte
      * @param {Vec3} p 
@@ -49,14 +65,6 @@ class Triangle {
     } 
     testTrianglSphere(t){
         return Vec3.dist(t.getCatenoid(), this.getCatenoid()) + this.EPSILON <= t.getRadius()+this.getRadius();
-    }
-    getCatenoid(){
-        let a=this.a, b=this.b, c=this.c;
-        return new Vec3((a.x+b.x+c.x)/3, (a.y+b.y+c.y)/3, (a.z+b.z+c.z)/3);
-    }
-    getRadius(){
-        let a=this.a, b=this.b, c=this.c;
-        return Math.max(Math.max(Vec3.sub(a,b).getLength(), Vec3.sub(b,c).getLength()), Vec3.sub(c,a).getLength()) / 2
     }
 
 

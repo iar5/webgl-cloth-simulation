@@ -4,11 +4,15 @@ class Spring{
         this.p1 = p1;
         this.initialLength = initialLength;    
         this.type = type;
+        this._lastElongation;
     }
-    getElongationInPercent(){
+    getActualElongation(){
         let length = Vec3.dist(this.p1, this.p0);
         let diff = length - this.initialLength
         return diff / this.initialLength
+    }
+    getLastElongation(){
+        return this._lastElongation
     }
     disctanceConstraint(strength){
         let d = Vec3.sub(this.p1, this.p0);
@@ -21,6 +25,6 @@ class Spring{
 
         this.p0.add(Vec3.scale(force, m0))
         this.p1.sub(Vec3.scale(force, m1)) 
-        return diff / this.initialLength
+        this._lastElongation = diff / this.initialLength
     }
 }

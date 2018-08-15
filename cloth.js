@@ -14,7 +14,7 @@ var windZ = 0.00;
 var drag = 0.99; 
 
 var defaultStiffness = 0.3;
-var defaultIterations = 100; 
+var defaultIterations = 50; 
 
 
 
@@ -32,13 +32,18 @@ class Cloth{
         this.mass = 1; // wegnehmen
         this.iterations = iterations;
         this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
+        this.drawStyle = "filled"
         this.iterationMode = "collectiv"
         this.springStrengths = {
             'structural' : 1,
             'shear' : 1,
             'bend' : 0.5
         }
+
         let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
+        //let drawFolder = guiFolder.addFolder('draw options');
+        //drawFolder.add(this, 'mode', ["filled, grid", "srings"]);
+        //drawFolder.add(this, 'style', ["light", "basic", "elongation"]);
         let springFolder = guiFolder.addFolder('spring strengths');
         springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
         springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
@@ -47,6 +52,7 @@ class Cloth{
         guiFolder.add(this, 'stiffness', 0, 2);
         guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
     }
+    
     /**
      * Speichert Referenz ab, 
      * Ersetzt die Punkte mit Partikel, initiert Federn
@@ -110,12 +116,12 @@ class Cloth{
             }
         }
         else throw Error("Mesh not suitable for cloth simulation");
-
     }
     
-    pin(pins){
-        for(let i of pins) this.mesh.points[i].pin();
+    pin(pointIndices){
+        for(let indice of pointIndices) this.mesh.points[indice].pin();
     }
+    
 
     /** 
      * Simulation loop
@@ -123,9 +129,33 @@ class Cloth{
     updateMesh(){
         this._applyExternalForces();
         this._satisfyConstraints();
-        this.mesh.recalculateTriangleNormals();
+        this.mesh.recalculateNormals();
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
+        //this.mesh._colors = this.getColorsFromElongation();
+    }
+
+    getColorsFromElongation(){
+        let colors = [];
+        for(let p of this.mesh.points){
+            let elongation = 0;
+            let springCount = 0;
+            for(let s of this.springs){
+                if(!(s.p0 == p || s.p1 == p)) continue;
+                elongation += s.getLastElongation();
+                springCount++;
+            }
+            const value = elongation/springCount;
+            const limit = 0.01 // 1 == 100%
+            let rgb = new Vec3(
+                value > limit ? limit : value < 0 ? 0 : value, 
+                Math.abs(limit-value),
+                Math.abs(value < -limit ? -limit : value > 0 ? 0 : value), 
+            ).normalize()
+
+            colors.push(rgb.x, rgb.y, rgb.z, 1)
+        }
+        return colors;
     }
 
     _applyExternalForces() {
@@ -140,7 +170,6 @@ class Cloth{
     }
     _satisfyConstraints() {
         let satisfied = false;
-
         for(let i=1; satisfied!=true && i<this.iterations; i++){
             satisfied = true;
             for (let s of this.springs) {
@@ -149,20 +178,19 @@ class Cloth{
                     s.disctanceConstraint(this.springStrengths[s.type])
                     satisfied = false;
                 }
-
                 else if(this.iterationMode == 'single'){
-                    if(Math.abs(s.getElongationInPercent()) > this.stiffness){
+                    if(Math.abs(s.getActualElongation()) > this.stiffness){
                         s.disctanceConstraint(this.springStrengths[s.type])
                         satisfied = false; 
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
                 }
                 else if(this.iterationMode == 'collectiv'){
-                    let elongation = s.disctanceConstraint(this.springStrengths[s.type])
+                    s.disctanceConstraint(this.springStrengths[s.type])
+                    let elongation = s.getLastElongation();
                     if(Math.abs(elongation) > this.stiffness) satisfied = false; 
                 }   
             }
-
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
             this.__collisionConstraint();  
         }  

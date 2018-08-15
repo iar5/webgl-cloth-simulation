@@ -1,6 +1,6 @@
 class Sphere extends Mesh{
     constructor(radius=1, numLatitudes=8, numLongitudes=8) {
-        super(phongProgram, gl.TRIANGLES)
+        super(lightProgram, gl.TRIANGLES)
         this.radius = radius;
         this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;

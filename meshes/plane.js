@@ -1,6 +1,6 @@
 class Plane extends Mesh{
     constructor(width, depth) {
-        super(phongProgram, gl.TRIANGLES)
+        super(lightProgram, gl.TRIANGLES)
         this.width = width | 1;
         this.depth = depth | 1;
         this.midPoint = new Vec3(0, 0, 0);

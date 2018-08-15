@@ -1,7 +1,7 @@
 /*
  * Resource loading and application start
  */
-var urls = ['shader/phong.vs', 'shader/phong.fs', 'shader/basic.vs', 'shader/basic.fs', "geometries/cube.json", "geometries/human_806polys.json", "geometries/icosa.json", "geometries/triangleBig.json"]
+var urls = ['shader/light.vs', 'shader/light.fs', 'shader/basic.vs', 'shader/basic.fs', "geometries/cube.json", "geometries/human_806polys.json", "geometries/icosa.json", "geometries/triangleBig.json"]
 var resources = {};
 
 urls.forEach(url => {
@@ -19,7 +19,7 @@ urls.forEach(url => {
  * Main application 
  */
 var gl;
-var phongProgram;
+var lightProgram;
 var basicProgram;
 var stats;
 var gui;
@@ -44,6 +44,7 @@ const camera = {
 
 
 function startApplication() {	
+
 	// ----------------- Setup ------------------ //
 
 	gl = canvas.getContext("experimental-webgl");
@@ -57,11 +58,10 @@ function startApplication() {
 	stats = new Stats();
 	document.body.appendChild(stats.dom);
 
-	
 	// ----------------- Scene Start ------------------ //
 
-	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .6]).translate(1.5, 3.5, -1);
-	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 1, 0, .6]).translate(-1.5, 3, 0);
+	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .5]).translate(1.5, 3.5, -1);
+	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 1, 0, .5]).translate(-1.5, 3, 0);
 	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Obj(resources["geometries/human_806polys.json"]);
 	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
@@ -69,11 +69,11 @@ function startApplication() {
 
 	//let towel1Pin = new Towel(40, 40, .15).translate(3, 2, 0).applyCloth(new Cloth(), [0]);
 	let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
-	//let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
+	let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 	//let towelTightWide = new Towel(144, 48, .125).rotateX(-90).translate(0, 6, 4).applyCloth(new Cloth(), [0, 143]);
 	//let towelTighter = new Towel(96, 96, .0625).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 95]);
 
-	objects = [towel, triangle, icosa, cube]
+	objects = [towel, icosa, cube]
 
 
 
@@ -113,7 +113,7 @@ function startApplication() {
 
 	function initShaders() {
 		basicProgram = createProgram(resources['shader/basic.vs'], resources['shader/basic.fs']);
-		phongProgram = createProgram(resources['shader/phong.vs'], resources['shader/phong.fs']);
+		lightProgram = createProgram(resources['shader/light.vs'], resources['shader/light.fs']);
 	}
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();

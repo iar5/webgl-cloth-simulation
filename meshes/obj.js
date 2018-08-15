@@ -8,7 +8,7 @@
 
 class Obj extends Mesh {
     constructor(resourceJSON) {
-        super(phongProgram, gl.TRIANGLES)
+        super(lightProgram, gl.TRIANGLES)
 
         if(!resourceJSON.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
         this._generateBufferData(resourceJSON)
@@ -51,30 +51,28 @@ class Obj extends Mesh {
      * @returns {false} bei gerader Schnittpunktanzahl
      * (Nicht komplett auf Richtigkeit getestet)
      */
-    isPointInside(points){
-        for(let p of points){
-            let intersections = [];
-            let dir = Vec3.sub(p, p.old).normalize();
-            for (let tri of this.triangles) {
-                let t = tri.moellerTrumbore(p, dir);
-                if(t != null && t > 0) intersections.push(new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
-            }  
-           return this.triangles.length>1 && intersections.length % 2 == 1;
-        }
+    isPointInside(p){
+        let intersections = [];
+        let dir = Vec3.sub(p, p.old).normalize();
+        for (let tri of this.triangles) {
+            let t = tri.moellerTrumbore(p, dir);
+            if(t != null && t > 0) intersections.push(new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
+        }  
+        return this.triangles.length>1 && intersections.length % 2 == 1;
     } 
     resolvePartikelCollision(points){
         for (let t of this.triangles) {
             for(let p of points){
-                if(!t.testPointSphere(p)) continue
-                t.resolvePartikelCollision(p)
+                if(!t.testPointSphere(p)) continue;
+                else t.resolvePartikelCollision(p)
             }
         }
     }
     resolveTriangleCollision(softTriangles){
         for (let t of this.triangles) {
             for (let st of softTriangles) {
-                if(!t.testTrianglSphere(st)) continue
-                t.resolveTriangleCollision(st);
+                if(!t.testTrianglSphere(st)) continue;
+                else t.resolveTriangleCollision(st);
             }
         }
     }
