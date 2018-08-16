@@ -27,12 +27,12 @@ var defaultIterations = 10;
  * @param {Number} iterations Anzal der (maximalen) Iterationen über die Distanzbedingungen, Auswirkung abhängig vom iterationMode
  */
 class Cloth{
-    constructor(stiffness=defaultStiffness, iterations=defaultIterations) {
+    constructor(stiffness=defaultStiffness, iterations=defaultIterations, iterationMode) {
         this.mesh = null;
         this.mass = 1; // wegnehmen
         this.iterations = iterations;
         this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
-        this.iterationMode = "fullIteration"
+        this.iterationMode = iterationMode || "fullIteration"
         this.springStrengths = {
             'structural' : 1,
             'shear' : 1,
@@ -112,17 +112,16 @@ class Cloth{
     }
     _setupGui(){
         let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
-        guiFolder.add(this, 'iterations', 0, 200).step(1);
-        guiFolder.add(this, 'stiffness', 0, 2);
-        guiFolder.add(this, 'iterationMode', ["single", "collectiv", "fullIteration"]);
-        let drawFolder = guiFolder.addFolder('draw options');
-        drawFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
-        drawFolder.add(this, 'heatMap');
-        drawFolder.open()
         let springFolder = guiFolder.addFolder('spring strengths');
         springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
         springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
         springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.1);
+        guiFolder.add(this, 'iterations', 0, 200).step(1);
+        guiFolder.add(this, 'stiffness', 0, 1);
+        guiFolder.add(this, 'iterationMode', ["singleStiffness", "collectivStiffness", "fullIteration"]);
+        guiFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
+        guiFolder.add(this, 'heatMap');
+        guiFolder.open()
     }
     
     /**
@@ -143,11 +142,11 @@ class Cloth{
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
         
-        if(this.heatMap) this.mesh._colors = this.getColorsFromElongation();
+        if(this.heatMap) this.mesh._colors = this._getColorsFromElongation();
         else this.mesh._colors = this.mesh._colorsBackup;
     }
 
-    getColorsFromElongation(){
+    _getColorsFromElongation(){
         // TODO Basic Shader verwenden
         let colors = [];
         for(let p of this.mesh.points){
@@ -162,7 +161,7 @@ class Cloth{
             const limit = this.stiffness;
             let rgb = new Vec3(
                 clamp(val/limit),
-                Math.abs(limit-val),
+                clamp(Math.abs(limit-Math.abs(val))),
                 clamp(val/-limit)
             ).normalize()
 
@@ -181,9 +180,10 @@ class Cloth{
             p.add((v.add(a).scale(drag)));
         }
     }
+
     _satisfyConstraints() {
         let satisfied = false;
-        for(let i=1; satisfied!=true && i<this.iterations; i++){
+        for(let i=1; satisfied!=true && i<this.iterations+1; i++){
             satisfied = true;
             for (let s of this.springs) {
 
@@ -191,14 +191,14 @@ class Cloth{
                     s.disctanceConstraint(this.springStrengths[s.type])
                     satisfied = false;
                 }
-                else if(this.iterationMode == 'single'){
+                else if(this.iterationMode == 'singleStiffness'){
                     if(Math.abs(s.getActualElongation()) > this.stiffness){
                         s.disctanceConstraint(this.springStrengths[s.type])
                         satisfied = false; 
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
                 }
-                else if(this.iterationMode == 'collectiv'){
+                else if(this.iterationMode == 'collectivStiffness'){
                     s.disctanceConstraint(this.springStrengths[s.type])
                     let elongation = s.getLastElongation();
                     if(Math.abs(elongation) > this.stiffness) satisfied = false; 
