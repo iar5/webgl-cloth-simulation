@@ -39,9 +39,12 @@ class Plane extends Mesh{
         this.midPoint.add(new Vec3(x,y,z))
         return super.translate(x, y, z);
     }
-    resolveSoftPointCollision(points){
+    /**
+     * Naiver test, wahrsheinlich auch nicht ganz richtig
+     * @param {*} points 
+     */
+    resolvePartikeltCollision(points){
         let midPoint=this.midPoint, width=this.width, depth=this.depth;
-        // sehr naiver test
         for(let p of points){
             if( -width/2+midPoint.x < p.x && p.x < width/2+midPoint.x 
             &&  -depth/2+midPoint.z < p.z && p.z < depth/2+midPoint.z 

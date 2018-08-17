@@ -62,7 +62,7 @@ function startApplication() {
 	// ----------------- Scene Start ------------------ //
 
 	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .5]).translate(1.5, 3.5, -1.5);
-	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 1, 0, .5]).translate(-1.5, 3, 0);
+	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 0, 1, .5]).translate(-1.5, 3, 0);
 	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Obj(resources["geometries/human_806polys.json"]);
 	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
@@ -72,9 +72,6 @@ function startApplication() {
 	//let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 
 	objects = [towel, icosa, cube]
-
-
-
 	
 
 

@@ -55,7 +55,7 @@ class Obj extends Mesh {
         let intersections = [];
         let dir = Vec3.sub(p, p.old).normalize();
         for (let tri of this.triangles) {
-            let t = tri.moellerTrumbore(p, dir);
+            let t = tri.getRayTriangleIntersection(p, dir);
             if(t != null && t > 0) intersections.push(new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
         }  
         return this.triangles.length>1 && intersections.length % 2 == 1;
@@ -63,8 +63,8 @@ class Obj extends Mesh {
     resolvePartikelCollision(points){
         for (let t of this.triangles) {
             for(let p of points){
-                if(!t.testPointSphere(p)) continue;
-                else t.resolvePartikelCollision(p)
+                //if(!t.testPartikelSphere(p)) continue;
+                t.resolvePartikelCollision(p)
             }
         }
     }

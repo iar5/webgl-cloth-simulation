@@ -48,7 +48,12 @@ class Sphere extends Mesh{
         this.midPoint.add(new Vec3(x,y,z))
         return super.translate(x, y, z);
     }
-    resolveSoftPointCollision(points){
+
+    /**
+     * Wird nicht erkannt wenn Partikel sich durch Kugel komplett durch bewegt, nur wenn er drin ist
+     * @param {*} points 
+     */
+    resolvePointCollision(points){
         let midPoint = this.midPoint
         for(let p of points){
             if(Vec3.dist(p, midPoint) < this.radius+this.EPSILON) {

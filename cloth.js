@@ -223,7 +223,8 @@ class Cloth{
         // Object Collision
         for(let o of objects) {
             if(o instanceof Towel) continue;
-            else if(o instanceof Sphere || o instanceof Plane) o.resolveSoftPointCollision(this.mesh.points);
+            else if(o instanceof Sphere) o.resolvePointCollision(this.mesh.points);
+            else if(o instanceof Plane) o.resolvePartikelCollision(this.mesh.points);  
             else if(o instanceof Obj) o.resolvePartikelCollision(this.mesh.points);  
             //else if(o instanceof Obj) o.resolveTriangleCollision(this.mesh.triangles);  
         }  
