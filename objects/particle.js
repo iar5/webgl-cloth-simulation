@@ -16,7 +16,7 @@ class Particle extends Vec3{
         this.pinned = false;
     } 
     pin(){
-        this.mass = 0
+        //this.mass = 0
         this.pinned = true;
     }
     unpin(){

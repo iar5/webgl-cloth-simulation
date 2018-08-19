@@ -108,7 +108,7 @@ class Triangle {
     }
 
     /**
-     * 
+     * Baustelle, nicht mehr aktuell
      * @param {Edge} e Edge/Spring mit zwei Punkten p1 und p2
      * @returns {Contact} 
      */

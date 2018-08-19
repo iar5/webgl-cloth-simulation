@@ -183,7 +183,9 @@ class Cloth{
 
     _satisfyConstraints() {
         let satisfied = false;
-        for(let i=1; satisfied!=true && i<this.iterations+1; i++){
+        let i = 1;
+        this.__collisionConstraint();    
+        for(; satisfied!=true && i<this.iterations+1; i++){
             satisfied = true;
             for (let s of this.springs) {
 
@@ -204,9 +206,12 @@ class Cloth{
                     if(Math.abs(elongation) > this.stiffness) satisfied = false; 
                 }   
             }
+            this.__collisionConstraint();    
+        }
+        if(this.iterationMode != 'fullIteration') {
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
-            this.__collisionConstraint();  
-        }  
+            else console.warn("Stiffness not satisfied! increase (maximum) iterations, if this message appears too often)")
+        }
     }   
     __collisionConstraint() {
         // Bottom Collision    

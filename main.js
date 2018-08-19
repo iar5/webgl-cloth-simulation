@@ -68,10 +68,11 @@ function startApplication() {
 	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
 	let	sphere2 = new Sphere(1.2, 22, 22).translate(1.2, 3, -1);
 
-	let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
+	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
+	let towel2 = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
 	//let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 
-	objects = [towel, icosa, cube]
+	objects = [towel2, icosa, cube]
 	
 
 
