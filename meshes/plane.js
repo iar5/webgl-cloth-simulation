@@ -6,7 +6,7 @@ class Plane extends Mesh{
         this.midPoint = new Vec3(0, 0, 0);
 
         this._generateBufferData();
-        this.points = generateVec3sFromContinousArray(this._vertices)
+        this.points = generateVec3sFromContinousArray(this._vertices);
     }
     _generateBufferData() {
         /**
@@ -40,10 +40,10 @@ class Plane extends Mesh{
         return super.translate(x, y, z);
     }
     /**
-     * Naiver test, wahrsheinlich auch nicht ganz richtig
+     * Naiver test, nicht weiter getestet auch nicht ganz richtig
      * @param {*} points 
      */
-    resolvePartikeltCollision(points){
+    resolvePartikelCollision(points){
         let midPoint=this.midPoint, width=this.width, depth=this.depth;
         for(let p of points){
             if( -width/2+midPoint.x < p.x && p.x < width/2+midPoint.x 

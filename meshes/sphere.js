@@ -1,15 +1,16 @@
+var sphereInstances=0;
+
 class Sphere extends Mesh{
-    constructor(radius=1, numLatitudes=8, numLongitudes=8) {
+    constructor(radius=1, numLatitudes=12, numLongitudes=12) {
         super(lightProgram, gl.TRIANGLES)
         this.radius = radius;
         this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;
-       
-        this.EPSILON = 0.01;
         this.midPoint = new Vec3(0, 0, 0);
+        this.EPSILON = 0.01;
 
         this._generateBufferData();
-        this.points = generateVec3sFromContinousArray(this._vertices)
+        this._setupGui();
     }
     _generateBufferData() {
         this._vertices = []; 
@@ -27,7 +28,7 @@ class Sphere extends Mesh{
                 let y = cosTheta;
                 let z = sinPhi * sinTheta;
                 this._normals.push(x, y, z);
-                this._vertices.push(x*this.radius, y*this.radius, z*this.radius);
+                this._vertices.push(this.midPoint.x + x*this.radius, this.midPoint.y + y*this.radius, this.midPoint.z + z*this.radius);
             }
         }
         this._colors = [];
@@ -44,9 +45,28 @@ class Sphere extends Mesh{
             }
         }
     }
+    _setupGui() {
+        let guiFolder = this.guiFolder = window.gui.addFolder('sphere' + sphereInstances++);
+        guiFolder.add(this, 'radius', 0, 5);
+        guiFolder.add(this.midPoint, 'x', -7, 7);
+        guiFolder.add(this.midPoint, 'y', -7, 7);
+        guiFolder.add(this.midPoint, 'z', -7, 7);
+    }
+
+
+    /**
+     * Durch die von der gui geupdaten Daten werden vertices in jedem Frame neu berechnet
+     * Translate beachtet nur Mittelpunkt
+     */
+    update(){
+        this._generateBufferData();
+        super.update();
+    }
+
     translate(x, y, z){
         this.midPoint.add(new Vec3(x,y,z))
-        return super.translate(x, y, z);
+        this.guiFolder.updateDisplay()
+        return this
     }
 
     /**

@@ -8,7 +8,6 @@ class Towel extends Mesh {
         this._generatePointsAndTriangles();
         this._changeIndicesFromDrawMode();
     }
-
     _generateBufferData() {
         /*
         * PUNKTE:
@@ -37,22 +36,22 @@ class Towel extends Mesh {
         }
         /*
         * Triangle INDICES: (CounterClockwise)
-        * 1 3 .  |  . 3 .  |  . 1 3  |  . . 3
-        * 2 . .  |  1 2 .  |  . 2 .  |  . 1 2
+        * 1 . .  |  1 3 .  |  . 1 3  |  . . 3
+        * 2 3 .  |  . 2 .  |  . 2 .  |  . 1 2
         */
        this._triangleIndices = [];
        for (let y = 0; y < this.amountY; y++) {
            for (let x = 0; x < this.amountX; x++) {
                 if (y + 1 == this.amountY) break;
                 if (x + 1 == this.amountX) continue;
-                this._triangleIndices.push(y * this.amountX + x, (y + 1) * this.amountX + x, y * this.amountX + x + 1);
-                this._triangleIndices.push((y + 1) * this.amountX + x, (y + 1) * this.amountX + x + 1, y * this.amountX + x + 1);
+                this._triangleIndices.push(y*this.amountX + x, (y+1)*this.amountX + x, (y+1)*this.amountX + x+1);
+                this._triangleIndices.push(y*this.amountX + x, (y+1)*this.amountX + x+1, y*this.amountX + x+1);
            }
        }
        this._lineIndices = [];
        for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
-                if (y + 1 < this.amountY) this._lineIndices.push(y * this.amountX + x, (y + 1) * this.amountX + x);
+                if (y + 1 < this.amountY) this._lineIndices.push(y * this.amountX + x, (y+1)*this.amountX + x);
                 if (x + 1 < this.amountX) this._lineIndices.push(y * this.amountX + x, y * this.amountX + x + 1);
                 //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
                 //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
@@ -60,20 +59,18 @@ class Towel extends Mesh {
             }
         }
     }
-
     _generatePointsAndTriangles() {
-        this.points = generateVec3sFromContinousArray(this._vertices)
-        this.triangles = [];
-        for (let y = 0; y < this.amountY; y++) {
-            for (let x = 0; x < this.amountX; x++) {
-                if (y + 1 == this.amountY) break;
-                if (x + 1 == this.amountX) continue;
-                this.triangles.push(new Triangle(this.points[y * this.amountX + x], this.points[(y + 1) * this.amountX + x], this.points[y * this.amountX + x + 1]));
-                this.triangles.push(new Triangle(this.points[(y + 1) * this.amountX + x], this.points[(y + 1) * this.amountX + x + 1], this.points[y * this.amountX + x + 1]));
-            }
+        let points = this.points = generateVec3sFromContinousArray(this._vertices)
+        let indices = this._triangleIndices;
+        let triangles = this.triangles = [];
+        for (let i=0; i < indices.length; i+=3) {
+            triangles.push(new Triangle(points[indices[i]], points[indices[i+1]], points[indices[i+2]]));
         }
     }
 
+    /**
+     * Indices je nach derzitigem Zeichenmodus anpassen
+     */
     _changeIndicesFromDrawMode(){
         if (this.drawMode == gl.TRIANGLES) this._indices = this._triangleIndices;
         else this._indices = this._lineIndices;
@@ -95,4 +92,14 @@ class Towel extends Mesh {
         this._changeIndicesFromDrawMode();
         super.update();
     }
+
+    /**
+     * TODO Hier self collision 
+     * Wie gewohnt über die Dreiecke, vorher nur adjazente von ausschließen?
+     * @param {*} points 
+     */
+    resolvePartikelCollision(points){
+        return;
+    }
+
 }

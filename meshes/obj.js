@@ -9,10 +9,11 @@
 class Obj extends Mesh {
     constructor(resourceJSON) {
         super(lightProgram, gl.TRIANGLES)
-
         if(!resourceJSON.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
+        this.name = resourceJSON.rootnode.name;
         this._generateBufferData(resourceJSON)
         this._generatePointsAndTriangles();
+        this._setupCollisionHirarchie();
     }
 
     _generateBufferData(model){
@@ -43,6 +44,26 @@ class Obj extends Mesh {
             ))
         }
     }
+    _setupCollisionHirarchie(){
+        // Erstellt mindestens eine AABB
+        this.aabb = new AABB(null, this.triangles, Math.floor(this.triangles.length/200))
+    }
+
+    /**
+     * Erweitern von Methoden
+     * funciton.apply übergibt das args Array in 'Parameterform'
+     * @param  {...any} args 
+     */
+    translate(...args){    
+        let temp = super.translate.apply(this, args);
+        this._setupCollisionHirarchie()
+        return temp;
+    }
+    rotate(...args){    
+        let temp = super.rotate.apply(this, args);
+        this._setupCollisionHirarchie()
+        return temp;
+    }
 
     /**
      * Prüft wie viele Schnittpunkte ein Strahl aus Partikel+Geschw.vektor mit den Teilobjekte (Dreiecke) dieses Objektes besitzt
@@ -60,10 +81,13 @@ class Obj extends Mesh {
         }  
         return this.triangles.length>1 && intersections.length % 2 == 1;
     } 
+
     resolvePartikelCollision(points){
-        for (let t of this.triangles) {
-            for(let p of points){
-                //if(!t.testPartikelSphere(p)) continue;
+        let triangles = this.triangles
+        for(let p of points){
+            triangles = this.aabb.getTestedTriangles(p);
+            if(triangles == null) continue
+            for (let t of triangles) {
                 t.resolvePartikelCollision(p)
             }
         }

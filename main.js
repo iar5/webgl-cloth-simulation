@@ -50,7 +50,6 @@ function startApplication() {
 	gl = canvas.getContext("experimental-webgl");
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
-
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	initShaders();
 	let loadingText = document.getElementById("loadingText");
@@ -61,18 +60,17 @@ function startApplication() {
 
 	// ----------------- Scene Start ------------------ //
 
-	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .5]).translate(1.5, 3.5, -1.5);
-	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 0, 1, .5]).translate(-1.5, 3, 0);
+	let	sphere = new Sphere(1, 22, 22).translate(-2, 3, -1);
+	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .5]).translate(2, 3, -1.5);
+	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 0, 1, .5]).translate(-.25, 3, 0.5);
 	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Obj(resources["geometries/human_806polys.json"]);
-	let	sphere = new Sphere(0.8, 18, 18).translate(-1.2, 2, -1);
-	let	sphere2 = new Sphere(1.2, 22, 22).translate(1.2, 3, -1);
 
-	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
-	let towel2 = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23]);
-	//let towelTight = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
+	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0]);
+	let towel = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0]);
+	//let towel = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 
-	objects = [towel2, icosa, cube]
+	objects = [towel, icosa, cube, sphere]
 	
 
 

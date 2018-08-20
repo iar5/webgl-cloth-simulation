@@ -10,17 +10,13 @@ class Mesh{
     initGl(gl){
         this._colorsBackup = this._colors; // Zwischenspeicher für Towel damit nach colorMode wieder gewechselt werden kann
         this._positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW);
         this._indicesBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), gl.STATIC_DRAW);
         this._colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._colors), gl.STATIC_DRAW);
         this._normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
     }
     draw(gl){
         gl.useProgram(this.program);
@@ -44,14 +40,6 @@ class Mesh{
         gl.drawElements(this.drawMode, this._indices.length, gl.UNSIGNED_SHORT, 0);
     }
 
-    applyUpdateCallback(callack){
-        this.animator = callack;
-        return this;
-    }
-    update(){
-        if(this.animator) this.animator();
-    }
-
     setColor(color){
         if(color instanceof Array) color = color;
         else if(color == 'red') color = [1, 0, 0, 1]
@@ -68,6 +56,19 @@ class Mesh{
         this._colorsBackup = this._colors; 
         return this;
     }
+
+    /**
+     * Animator für die Textilsimulaion existiert nur in Towel und überschreibt erweitert mesh.update()
+     * @param {Function} callack 
+     */
+    applyUpdateCallback(callack){
+        this.animator = callack;
+        return this;
+    }
+    update(){
+        if(this.animator) this.animator();
+    }
+
 
     /**
      * Update Buffer Vertices mit neuen Partikelpositionen

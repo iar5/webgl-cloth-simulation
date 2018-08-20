@@ -8,7 +8,7 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        this.EPSILON = 0.0001
+        this.EPSILON = 0.000001
         this.recalculateNormal();
     }
 
@@ -47,10 +47,10 @@ class Triangle {
     testPartikelSphere(p){
         // TODO moving Point
         let v = Vec3.sub(p, p.old)
-        return Vec3.dist(p, this.getCatenoid()) + this.EPSILON <= this.getRadius();
+        return;
     } 
     testTrianglSphere(t){
-        // TODO MOVING Sphere/Sphere Testen S.224 Ericosn
+        // TODO Moving-Sphere Sphere Testen S.224 Ericosn
         // Problem: Dreieck bzw. Bounding Sphere kann über den Zeitschritt neue größe angenommen haben weil sich Partikel nicht alle in die selbe Richtung bewegen 
         // -> Test über die größere Sphere laufen lassen? Von altem bzw. neuem Dreieck -> bzw. über Zylinder für dynamische 
         return Vec3.dist(t.getCatenoid(), this.getCatenoid()) + this.EPSILON <= t.getRadius()+this.getRadius();
@@ -74,15 +74,15 @@ class Triangle {
      * @returns {Number} Skalar t
      */
     getRayTriangleIntersection(o, dir){
-        let edge1 = Vec3.sub(this.b, this.a)
-        let edge2 = Vec3.sub(this.c, this.a)
+        let edge1 = Vec3.sub(this.b, this.a);
+        let edge2 = Vec3.sub(this.c, this.a);
         let pvec = Vec3.cross(dir, edge2);
         let det = Vec3.dot(edge1, pvec); 
         // det < 0 : Strahö zeigt weg von Ebene, negatives t expected
         // det > 0 : Positives t expected
         // det == 0 : Strahl verläuft parallel zur Ebene des Dreiecks -> kein t
         if (-this.EPSILON < det && det < this.EPSILON) return null;
-        let inv_det = 1/det
+        let inv_det = 1/det;
         let tvec = Vec3.sub(o, this.a);
         let u = Vec3.dot(tvec, pvec) * inv_det;
         if (u < 0 || u > 1) return null;
@@ -149,15 +149,15 @@ class Triangle {
      */ 
     resolvePartikelCollision(p) { 
         let bp = this.isPointInFront(p)
+        if(bp) return null;
         let bpold = this.isPointInFront(p.old);
-        if(!(!bp && bpold)) return null; 
+        if(!bpold) return null; 
         
         let dir = Vec3.sub(p, p.old)
         let t = this.getRayTriangleIntersection(p, dir)
         if(t == null) return;
         let ip = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
-        let newp = Vec3.add(ip, Vec3.scale(this.n, this.EPSILON))
-        p.set(newp)
+        p.set(Vec3.add(ip, Vec3.scale(this.n, this.EPSILON)))
     }  
 }

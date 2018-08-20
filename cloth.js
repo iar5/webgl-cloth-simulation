@@ -120,6 +120,7 @@ class Cloth{
         guiFolder.add(this, 'stiffness', 0, 1);
         guiFolder.add(this, 'iterationMode', ["singleStiffness", "collectivStiffness", "fullIteration"]);
         guiFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
+        guiFolder.add(this.mesh, 'program', {light: lightProgram, basic: basicProgram});
         guiFolder.add(this, 'heatMap');
         guiFolder.open()
     }
@@ -184,39 +185,40 @@ class Cloth{
     _satisfyConstraints() {
         let satisfied = false;
         let i = 1;
+        let strength;
         this.__collisionConstraint();    
         for(; satisfied!=true && i<this.iterations+1; i++){
             satisfied = true;
             for (let s of this.springs) {
-
+                strength = this.springStrengths[s.type];
                 if(this.iterationMode == 'fullIteration'){
-                    s.disctanceConstraint(this.springStrengths[s.type])
+                    s.disctanceConstraint(strength)
                     satisfied = false;
                 }
                 else if(this.iterationMode == 'singleStiffness'){
-                    if(Math.abs(s.getActualElongation()) > this.stiffness){
-                        s.disctanceConstraint(this.springStrengths[s.type])
+                    if(Math.abs(s.getActualElongation(strength)) > this.stiffness){
+                        s.disctanceConstraint(strength)
                         satisfied = false; 
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
                 }
                 else if(this.iterationMode == 'collectivStiffness'){
-                    s.disctanceConstraint(this.springStrengths[s.type])
-                    let elongation = s.getLastElongation();
-                    if(Math.abs(elongation) > this.stiffness) satisfied = false; 
+                    s.disctanceConstraint(strength)
+                    if(Math.abs(s.getLastElongation(strength)) > this.stiffness) satisfied = false; 
                 }   
             }
-            this.__collisionConstraint();    
         }
+        this.__collisionConstraint();    
+
         if(this.iterationMode != 'fullIteration') {
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
-            else console.warn("Stiffness not satisfied! increase (maximum) iterations, if this message appears too often)")
+            else console.warn("Stiffness not satisfied! Increase (maximum) iterations if this message appears too often.")
         }
     }   
     __collisionConstraint() {
         // Bottom Collision    
         let bounce = 0.6;  
-        let friction = 0.5;
+        let friction = 0.3;
         for (let p of this.mesh.points) {
             if (p.y < 0) {
                 p.y = 0;
@@ -227,11 +229,8 @@ class Cloth{
         }
         // Object Collision
         for(let o of objects) {
-            if(o instanceof Towel) continue;
-            else if(o instanceof Sphere) o.resolvePointCollision(this.mesh.points);
-            else if(o instanceof Plane) o.resolvePartikelCollision(this.mesh.points);  
-            else if(o instanceof Obj) o.resolvePartikelCollision(this.mesh.points);  
-            //else if(o instanceof Obj) o.resolveTriangleCollision(this.mesh.triangles);  
+            if (o instanceof Sphere) o.resolvePointCollision(this.mesh.points);
+            else o.resolvePartikelCollision(this.mesh.points);  
         }  
     } 
 }
