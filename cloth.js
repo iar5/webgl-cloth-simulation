@@ -4,7 +4,7 @@ window.addEventListener('load', () => {
     enviroment.add(this, 'gravity');
     enviroment.add(this, 'windX');
     enviroment.add(this, 'windZ');
-    enviroment.add(this, 'drag', 0.9, 1.1);
+    enviroment.add(this, 'drag', 0.9, 1.01);
 })
 var clothIstances = 0;
 

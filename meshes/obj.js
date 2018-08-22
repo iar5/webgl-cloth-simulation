@@ -46,7 +46,8 @@ class Obj extends Mesh {
     }
     _setupCollisionHirarchie(){
         // Erstellt mindestens eine AABB
-        this.aabb = new AABB(null, this.triangles, Math.floor(this.triangles.length/200))
+        // TODO Maximale Tiefe anpassen
+        this.aabb = new AABB(null, this.triangles, Math.floor(8))
     }
 
     /**

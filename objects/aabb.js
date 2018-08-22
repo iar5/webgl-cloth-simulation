@@ -1,7 +1,7 @@
 class AABB{
     /**
      * Axis Aligned Bounding Box
-     * @param {AABB} parent 
+     * @param {AABB} parent (für später, nicht jedes mal erneut Baum von oben testen sondern von box aus dem letzten simulationsschritt hoch) 
      * @param {Array} triangles set welches AABB umfassen soll und dann auf Kinder aufgeteilt wird
      * @param {Number} depth wie viele kinder AABBs soll es geben
      */
@@ -40,7 +40,8 @@ class AABB{
             else if(y>z)    achse='y', value=(ymax+ymin)/2; 
             else            achse='z', value=(zmax+zmin)/2;                       
 
-            // Trianglen an Achse aufteilen oder auch beiden Gruppen hinzufügen wenn es sich über beide streckt
+            // Trianglen an der Achse aufteilen
+            // Beiden Gruppen hinzufügen wenn es sich über beide streckt
             let greater = [];
             let lower = [];
             for(let t of triangles){
@@ -82,15 +83,14 @@ class AABB{
     
 
     /**
+     * Ray-Box intersection ("MovingPoint-BoundginBox")
      * Ericson S. 183
      * @param {*} p 
      */
     testPartikel(p){
-        let c = Vec3.add(this.min, this.max).scale(0.5)
-        let e = Vec3.sub(this.max, c)
-        let m = Vec3.add(p, p.old).scale(0.5)
-        let d = Vec3.sub(p.old, m)
-        m.sub(c)
+        let e = Vec3.sub(this.max, this.min)
+        let m = Vec3.add(p.old, p).sub(this.min).sub(this.max)
+        let d = Vec3.sub(p, p.old)
 
         let adx = Math.abs(d.x);
         if(Math.abs(m.x) > e.x+adx) return false;

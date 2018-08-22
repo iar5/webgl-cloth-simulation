@@ -46,6 +46,8 @@ class Towel extends Mesh {
                 if (x + 1 == this.amountX) continue;
                 this._triangleIndices.push(y*this.amountX + x, (y+1)*this.amountX + x, (y+1)*this.amountX + x+1);
                 this._triangleIndices.push(y*this.amountX + x, (y+1)*this.amountX + x+1, y*this.amountX + x+1);
+                //this._triangleIndices.push(y*this.amountX + x, (y+1)*this.amountX + x, y*this.amountX + x+1);
+                //this._triangleIndices.push((y+1)*this.amountX + x, (y+1)*this.amountX + x+1, y*this.amountX + x+1);
            }
        }
        this._lineIndices = [];
@@ -53,9 +55,8 @@ class Towel extends Mesh {
             for (let x = 0; x < this.amountX; x++) {
                 if (y + 1 < this.amountY) this._lineIndices.push(y * this.amountX + x, (y+1)*this.amountX + x);
                 if (x + 1 < this.amountX) this._lineIndices.push(y * this.amountX + x, y * this.amountX + x + 1);
-                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);
-                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
-            
+                if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
+                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);            
             }
         }
     }

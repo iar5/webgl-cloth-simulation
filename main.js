@@ -1,13 +1,22 @@
 /*
  * Resource loading and application start
  */
-var urls = ['shader/light.vs', 'shader/light.fs', 'shader/basic.vs', 'shader/basic.fs', "geometries/cube.json", "geometries/human_806polys.json", "geometries/icosa.json", "geometries/triangleBig.json"]
-var resources = {};
+var urls = [
+	'shader/light.vs', 
+	'shader/light.fs', 
+	'shader/basic.vs', 
+	'shader/basic.fs', 
+	'geometries/cube.json', 
+	'geometries/human_806polys.json', 
+	'geometries/icosa.json', 
+	'geometries/triangleBig.json'
+]
+var resc = {};
 
 urls.forEach(url => {
 	loadTextResource(url, (resource) => {
-		resources[url] = url.endsWith('.json') ? resource = JSON.parse(resource) : resource;
-		if(Object.keys(resources).length == urls.length){
+		resc[url] = url.endsWith('.json') ? resource = JSON.parse(resource) : resource;
+		if(Object.keys(resc).length == urls.length){
 			window.onload = startApplication();
 		}
 	})
@@ -61,16 +70,20 @@ function startApplication() {
 	// ----------------- Scene Start ------------------ //
 
 	let	sphere = new Sphere(1, 22, 22).translate(-2, 3, -1);
-	let cube = new Obj(resources["geometries/cube.json"]).setColor([1, 0, 0, .5]).translate(2, 3, -1.5);
-	let	icosa = new Obj(resources["geometries/icosa.json"]).setColor([0, 0, 1, .5]).translate(-.25, 3, 0.5);
-	let triangle = new Obj(resources["geometries/triangleBig.json"]).translate(-.5, 1, -1);
-	let	human = new Obj(resources["geometries/human_806polys.json"]);
+	let cube = new Obj(resc["geometries/cube.json"]).setColor([.9, .7, .5, 1]).translate(2, 3, -1.5);
+	let	icosa = new Obj(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
+	let triangle = new Obj(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
+	let	human = new Obj(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
+	
+	//let towelProb1 = new Towel(12, 12, .5).applyCloth(new Cloth(), [0, 11]).rotateX(-90).translate(0, 3, 3);
+	
+	//let towel = new Towel(6, 6, 1).applyCloth(new Cloth(), [0, 5]).rotateY(180);
 
-	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0]);
-	let towel = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0]);
-	//let towel = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
+	//let towel = new Towel(24, 24, .25).applyCloth(new Cloth(), [0, 23, 552]).rotateX(-90).translate(0, 6, 3);
+	let towel = new Towel(36, 36, .1875).applyCloth(new Cloth(), [0, 35, 1260]).rotateX(-90).translate(0, 6, 3);
+	//let towel = new Towel(48, 48, .125).applyCloth(new Cloth(), [0, 47]).rotateX(-90).translate(0, 6, 3);
 
-	objects = [towel, icosa, cube, sphere]
+	objects = [towel, cube, icosa, sphere]
 	
 
 
@@ -111,8 +124,8 @@ function startApplication() {
 	}
 
 	function initShaders() {
-		basicProgram = createProgram(resources['shader/basic.vs'], resources['shader/basic.fs']);
-		lightProgram = createProgram(resources['shader/light.vs'], resources['shader/light.fs']);
+		basicProgram = createProgram(resc['shader/basic.vs'], resc['shader/basic.fs']);
+		lightProgram = createProgram(resc['shader/light.vs'], resc['shader/light.fs']);
 	}
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();

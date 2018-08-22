@@ -40,17 +40,17 @@ class Sphere extends Mesh{
             for (let longitude=0; longitude < this.numLongitudes; longitude++) {
                 let first  = latitude * (this.numLongitudes + 1) + longitude;
                 let second = first + this.numLongitudes + 1;
-                this._indices.push(first, second, first+1);  
-                this._indices.push(second, second+1, first+1);
+                this._indices.push(first, first+1, second);  
+                this._indices.push(second, first+1, second+1);
             }
         }
     }
     _setupGui() {
         let guiFolder = this.guiFolder = window.gui.addFolder('sphere' + sphereInstances++);
-        guiFolder.add(this, 'radius', 0, 5);
-        guiFolder.add(this.midPoint, 'x', -7, 7);
-        guiFolder.add(this.midPoint, 'y', -7, 7);
-        guiFolder.add(this.midPoint, 'z', -7, 7);
+        guiFolder.add(this, 'radius', 0, 5).step(0.01);
+        guiFolder.add(this.midPoint, 'x', -7, 7).step(0.01);
+        guiFolder.add(this.midPoint, 'y', -7, 7).step(0.01);
+        guiFolder.add(this.midPoint, 'z', -7, 7).step(0.01);
     }
 
 
