@@ -9,7 +9,7 @@ class Spring{
     
     /**
      * Ausdehnung der Feder unter Betracht der Stärke (oder eben nicht, wenn kein Parameter übergben)
-     * @param {Number} strength 
+     * @param {Number} strength  
      */
     getActualElongation(strength=1){
         let length = Vec3.dist(this.p1, this.p0);

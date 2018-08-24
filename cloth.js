@@ -38,7 +38,7 @@ class Cloth{
             'shear' : 1,
             'bend' : 0.5
         }
-        this.heatMap = false;
+        this.elongationMap = false;
     }
     
     /**
@@ -120,8 +120,8 @@ class Cloth{
         guiFolder.add(this, 'stiffness', 0, 1);
         guiFolder.add(this, 'iterationMode', ["singleStiffness", "collectivStiffness", "fullIteration"]);
         guiFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
-        guiFolder.add(this.mesh, 'program', {light: lightProgram, basic: basicProgram});
-        guiFolder.add(this, 'heatMap');
+        guiFolder.add(this.mesh, 'programName', ["light", "basic"]);
+        guiFolder.add(this, 'elongationMap');
         guiFolder.open()
     }
     
@@ -143,28 +143,31 @@ class Cloth{
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
         
-        if(this.heatMap) this.mesh._colors = this._getColorsFromElongation();
+        if(this.elongationMap) this.mesh._colors = this._getColorsFromElongation();
         else this.mesh._colors = this.mesh._colorsBackup;
     }
 
     _getColorsFromElongation(){
-        // TODO Basic Shader verwenden
         let colors = [];
         for(let p of this.mesh.points){
-            let elongation = 0;
-            let springCount = 0;
+            let elongationCount = 0;
+            let strengthCount = 0;
             for(let s of this.springs){
                 if(!(s.p0 == p || s.p1 == p)) continue;
-                elongation += s.getLastElongation();
-                springCount++;
+                let strength = this.springStrengths[s.type];
+                let elongation = s.getActualElongation(strength);
+                elongationCount += elongation;
+                strengthCount += strength;
             }
-            const val = elongation/springCount;
-            const limit = this.stiffness;
+  
+            const val = elongationCount/strengthCount;
+            const stiff = this.stiffness;
+
             let rgb = new Vec3(
-                clamp(val/limit),
-                clamp(Math.abs(limit-Math.abs(val))),
-                clamp(val/-limit)
-            ).normalize()
+                clamp(val/stiff), // wird 0 wenn val negativ ist
+                stiff,
+                clamp(val/-stiff)
+            ).normalize();
 
             colors.push(rgb.x, rgb.y, rgb.z, 1)
         }
@@ -195,6 +198,10 @@ class Cloth{
                     s.disctanceConstraint(strength)
                     satisfied = false;
                 }
+                else if(this.iterationMode == 'collectivStiffness'){
+                    s.disctanceConstraint(strength)
+                    if(Math.abs(s.getLastElongation(strength)) > this.stiffness) satisfied = false; 
+                }   
                 else if(this.iterationMode == 'singleStiffness'){
                     if(Math.abs(s.getActualElongation(strength)) > this.stiffness){
                         s.disctanceConstraint(strength)
@@ -202,10 +209,6 @@ class Cloth{
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
                 }
-                else if(this.iterationMode == 'collectivStiffness'){
-                    s.disctanceConstraint(strength)
-                    if(Math.abs(s.getLastElongation(strength)) > this.stiffness) satisfied = false; 
-                }   
             }
         }
         this.__collisionConstraint();    
@@ -217,14 +220,14 @@ class Cloth{
     }   
     __collisionConstraint() {
         // Bottom Collision    
-        let bounce = 0.6;  
-        let friction = 0.3;
+        let bounce = 0.3;  
+        let friction = .3;
         for (let p of this.mesh.points) {
             if (p.y < 0) {
                 p.y = 0;
-                p.old.x = p.x + (p.x-p.old.x) * friction;
+                p.old.x = p.x - (p.x-p.old.x) * friction;
                 p.old.y = -p.old.y * bounce;
-                p.old.z = p.z + (p.z-p.old.z) * friction;
+                p.old.z = p.z - (p.z-p.old.z) * friction;
             }
         }
         // Object Collision

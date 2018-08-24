@@ -7,7 +7,7 @@ class Sphere extends Mesh{
         this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;
         this.midPoint = new Vec3(0, 0, 0);
-        this.EPSILON = 0.01;
+        this.EPSILON = 0.02;
 
         this._generateBufferData();
         this._setupGui();
@@ -33,7 +33,7 @@ class Sphere extends Mesh{
         }
         this._colors = [];
         for(let i=0; i < this._vertices.length/3; i++){
-            this._colors.push(1, 0, 0, 1)
+            this._colors.push(1, 1, 0, 1)
         }
         this._indices = [];
         for (let latitude=0; latitude < this.numLatitudes; latitude++){
@@ -74,6 +74,7 @@ class Sphere extends Mesh{
      * @param {*} points 
      */
     resolvePointCollision(points){
+        if(this.radius == 0) return;
         let midPoint = this.midPoint
         for(let p of points){
             if(Vec3.dist(p, midPoint) < this.radius+this.EPSILON) {

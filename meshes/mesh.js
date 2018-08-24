@@ -19,22 +19,24 @@ class Mesh{
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
     }
     draw(gl){
-        gl.useProgram(this.program);
-		gl.uniformMatrix4fv(this.program.projMatrixUniform, false, projectionMatrix);
-        gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, modelviewMatrix);
+        // Direkte Zuweisung der Programme über dat.GUI klappt irgendwie nicht. Basic Programm ist wird dann irgendwie nur als String wiedergegeben
+        // Außerdem muss mindestens ein Objekt mit basicProgram gezeichnet worden sein, wahrscheinlich damit Buffer gefüllt sind?
+        // Versteh da Problem nicht aber workaround mit Dummyobjekt klappt. Zwar nervig aber nicht weiter schlimm
+        if(this.programName == "light") gl.useProgram(lightProgram);
+        else if(this.programName == "basic") gl.useProgram(basicProgram)
+        else gl.useProgram(this.program)
 
+        gl.uniformMatrix4fv(this.program.projMatrixUniform, false, projectionMatrix);
+        gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, modelviewMatrix);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer); 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW); // update positions   
         gl.vertexAttribPointer(this.program.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
         gl.vertexAttribPointer(this.program.vertexNormalAttribute, 3, gl.FLOAT, gl.TRUE, 0, 0);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._colors), gl.STATIC_DRAW);
         gl.vertexAttribPointer(this.program.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), gl.STATIC_DRAW);
         gl.drawElements(this.drawMode, this._indices.length, gl.UNSIGNED_SHORT, 0);
@@ -68,7 +70,6 @@ class Mesh{
     update(){
         if(this.animator) this.animator();
     }
-
 
     /**
      * Update Buffer Vertices mit neuen Partikelpositionen

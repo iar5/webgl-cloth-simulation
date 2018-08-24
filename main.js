@@ -45,27 +45,16 @@ mat4.identity(rotationMatrix);
 
 var objects;
 const camera = {
-	position: [0.0, -4, -15.0],
-	rotation: 0,
+	 // wirkt als Transformation der gesamten Szene, also Werte umdrehen
+	position: [0, -4, -15],
+	rotation: [0, 0, 0],
 	angle: 35,
 	animated: false
 }
 
 
 function startApplication() {	
-
-	// ----------------- Setup ------------------ //
-
-	gl = canvas.getContext("experimental-webgl");
-	gl.enable(gl.DEPTH_TEST);
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-	initShaders();
-	let loadingText = document.getElementById("loadingText");
-	loadingText.parentNode.removeChild(loadingText);
-	canvas.style.display = "initial";
-	stats = new Stats();
-	document.body.appendChild(stats.dom);
+	setup()
 
 	// ----------------- Scene Start ------------------ //
 
@@ -75,23 +64,40 @@ function startApplication() {
 	let triangle = new Obj(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Obj(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
 	
-	//let towelProb1 = new Towel(12, 12, .5).applyCloth(new Cloth(), [0, 11]).rotateX(-90).translate(0, 3, 3);
-	
-	//let towel = new Towel(6, 6, 1).applyCloth(new Cloth(), [0, 5]).rotateY(180);
-
 	//let towel = new Towel(24, 24, .25).applyCloth(new Cloth(), [0, 23, 552]).rotateX(-90).translate(0, 6, 3);
-	let towel = new Towel(36, 36, .1875).applyCloth(new Cloth(), [0, 35, 1260]).rotateX(-90).translate(0, 6, 3);
+	//let towel = new Towel(36, 36, .1875).applyCloth(new Cloth(), [0, 35, 1260]).rotateX(-90).translate(0, 6, 3);
 	//let towel = new Towel(48, 48, .125).applyCloth(new Cloth(), [0, 47]).rotateX(-90).translate(0, 6, 3);
+	
+	let sphereMid = new Sphere(1, 22, 22).translate(0, 2, 0);
+	let towel = new Towel(24, 24, .25).applyCloth(new Cloth(), [0, 23, 552, 575]).rotateX(-90).translate(0, 2.5, 3);
 
-	objects = [towel, cube, icosa, sphere]
+	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
+
+	objects = [towel, sphereMid]
 	
 
 
 
-
-
+	
 	// ----------------- Scene End ------------------ //
 
+	function setup(){
+		gl = canvas.getContext("experimental-webgl");
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		basicProgram = createProgram(resc['shader/basic.vs'], resc['shader/basic.fs']);
+		lightProgram = createProgram(resc['shader/light.vs'], resc['shader/light.fs']);
+		let loadingText = document.getElementById("loadingText");
+		loadingText.parentNode.removeChild(loadingText);
+		canvas.style.display = "initial";
+		stats = new Stats();
+		document.body.appendChild(stats.dom);
+	}
+
+	let dummy = new Sphere(0,0,0);
+	dummy.program = basicProgram // siehe Problem in mesh.draw()
+	objects.unshift(dummy)
 	objects.forEach(o => o.initGl(gl));
 	loop();
 
@@ -103,7 +109,10 @@ function startApplication() {
 		mat4.identity(modelviewMatrix);
 		mat4.translate(modelviewMatrix, camera.position);
 		mat4.multiply(modelviewMatrix, rotationMatrix);
-		mat4.rotate(modelviewMatrix, degToRad(camera.rotation), [0, 1, 0]);
+		mat4.rotate(modelviewMatrix, degToRad(camera.rotation[0]), [1, 0, 0]);
+		mat4.rotate(modelviewMatrix, degToRad(camera.rotation[1]), [0, 1, 0]);
+		mat4.rotate(modelviewMatrix, degToRad(camera.rotation[2]), [0, 0, 1]);
+
 		objects.forEach(o => {
 			if(o.update) o.update();
 			o.draw(gl)
@@ -123,10 +132,6 @@ function startApplication() {
 		lastTick = timeNow;
 	}
 
-	function initShaders() {
-		basicProgram = createProgram(resc['shader/basic.vs'], resc['shader/basic.fs']);
-		lightProgram = createProgram(resc['shader/light.vs'], resc['shader/light.fs']);
-	}
 	function createProgram(vertexShaderCode, fragmentShaderCode) {
 		let program = gl.createProgram();
 		var vshader = gl.createShader(gl.VERTEX_SHADER);
@@ -138,18 +143,19 @@ function startApplication() {
 		gl.compileShader(fshader);
 		gl.attachShader(program, fshader);
 		gl.linkProgram(program);
-		gl.useProgram(program);
-		bindAttribute(program, "vertexPositionAttribute", "vertexPosition");
-		bindAttribute(program, "vertexColorAttribute", "vertexColor");
-		bindAttribute(program, "vertexNormalAttribute", "vertexNormal");
+		gl.useProgram(program);	
 		program.projMatrixUniform = gl.getUniformLocation(program, "projectionMatrix");
 		program.mvMatrixUniform = gl.getUniformLocation(program, "mvMatrix");
+		program.vertexPositionAttribute = gl.getAttribLocation(program, 'vertexPosition');
+		program.vertexColorAttribute = gl.getAttribLocation(program, 'vertexColor');
+		program.vertexNormalAttribute = gl.getAttribLocation(program, 'vertexNormal');
+		gl.enableVertexAttribArray(program.vertexPositionAttribute);
+		gl.enableVertexAttribArray(program.vertexColorAttribute);		
+		gl.enableVertexAttribArray(program.vertexNormalAttribute);
+
 		return program;
 	}
-	function bindAttribute(program, programAttributeName, attributeName){
-		program[programAttributeName] = gl.getAttribLocation(program, attributeName);
-		gl.enableVertexAttribArray(program[programAttributeName]);
-	}
+
 
 	// ---------------- Mouse controls ------------------- //
 	/*

@@ -7,6 +7,8 @@ class Towel extends Mesh {
         this._generateBufferData();
         this._generatePointsAndTriangles();
         this._changeIndicesFromDrawMode();
+        this.programName = "light" // Siehe Problembeschreibung in mesh.draw()
+
     }
     _generateBufferData() {
         /*
