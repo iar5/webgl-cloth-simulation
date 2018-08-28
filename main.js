@@ -9,7 +9,9 @@ var urls = [
 	'geometries/cube.json', 
 	'geometries/human_806polys.json', 
 	'geometries/icosa.json', 
-	'geometries/triangleBig.json'
+	'geometries/triangleBig.json',
+	'geometries/pyramide.json',
+	'geometries/sphere.json'
 ]
 var resc = {};
 
@@ -46,7 +48,7 @@ mat4.identity(rotationMatrix);
 var objects;
 const camera = {
 	 // wirkt als Transformation der gesamten Szene, also Werte umdrehen
-	position: [0, -4, -15],
+	position: [0, -3, -15],
 	rotation: [0, 0, 0],
 	angle: 35,
 	animated: false
@@ -59,21 +61,25 @@ function startApplication() {
 	// ----------------- Scene Start ------------------ //
 
 	let	sphere = new Sphere(1, 22, 22).translate(-2, 3, -1);
-	let cube = new Obj(resc["geometries/cube.json"]).setColor([.9, .7, .5, 1]).translate(2, 3, -1.5);
-	let	icosa = new Obj(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
-	let triangle = new Obj(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
-	let	human = new Obj(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
+	let cube = new Mesh(resc["geometries/cube.json"]).setColor([.9, .7, .5, 1]).translate(2, 3, -1.5);
+	let	icosa = new Mesh(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
+	let	pyramide = new Mesh(resc["geometries/pyramide.json"]).setColor([.3, .55, 1, .5]).translate(-.1, 0.5, 0);
+	let triangle = new Mesh(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
+	let	human = new Mesh(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
+	let	sphereTriMesh = new Mesh(resc["geometries/sphere.json"]).translate(0, 2, 0);
+
+	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23, 552]);
+	//let towel = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 35, 1260]);
+	//let towel = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
 	
-	//let towel = new Towel(24, 24, .25).applyCloth(new Cloth(), [0, 23, 552]).rotateX(-90).translate(0, 6, 3);
-	//let towel = new Towel(36, 36, .1875).applyCloth(new Cloth(), [0, 35, 1260]).rotateX(-90).translate(0, 6, 3);
-	//let towel = new Towel(48, 48, .125).applyCloth(new Cloth(), [0, 47]).rotateX(-90).translate(0, 6, 3);
-	
-	let sphereMid = new Sphere(1, 22, 22).translate(0, 2, 0);
-	let towel = new Towel(24, 24, .25).applyCloth(new Cloth(), [0, 23, 552, 575]).rotateX(-90).translate(0, 2.5, 3);
+	let cubeMid = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(0, 1, 0);
+	let sphereMid = new Sphere(1, 22, 22).translate(0, 1, 0);
+	let towel4pin = new Towel(24, 24, .25).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 23, 552, 575]);
+	let towelFree = new Towel(48, 48, .125).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 
 	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
 
-	objects = [towel, sphereMid]
+	objects = [towelFree, pyramide]
 	
 
 
@@ -95,10 +101,10 @@ function startApplication() {
 		document.body.appendChild(stats.dom);
 	}
 
-	let dummy = new Sphere(0,0,0);
+	let dummy = new Plane(0, 0);
 	dummy.program = basicProgram // siehe Problem in mesh.draw()
 	objects.unshift(dummy)
-	objects.forEach(o => o.initGl(gl));
+	objects.forEach(o => o.initGl());
 	loop();
 
 	function loop() {
@@ -115,7 +121,7 @@ function startApplication() {
 
 		objects.forEach(o => {
 			if(o.update) o.update();
-			o.draw(gl)
+			o.draw()
 		});
 		stats.update();
 		requestAnimationFrame(loop);

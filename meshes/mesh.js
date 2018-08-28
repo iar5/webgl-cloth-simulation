@@ -1,152 +1,100 @@
-class Mesh{
-    constructor(program, drawMode) {
-        this.program = program;
-        this.drawMode = drawMode;
+/**
+ * Klasse zum Laden von .json Dreiecksnetz Objekten, die mit assimp2json generiert wurden
+ * Anforderungen
+ * - .obj bzw .json darf keine Doppelten Vertices haben
+ * - Also Face Indices nicht in der Form: [0,1,2], [3,4,5], ..
+ * - Sondern [0,1,2], [0,2,3], .. o.Ä
+ * - Sonst hat jedes Dreieck eigene Punkte die z.B. bei Umpositionierung unabhängig vom Dublikat sind
+ */
+
+class Mesh extends MeshObject {
+    constructor(resourceJSON) {
+        super(lightProgram, gl.TRIANGLES)
+        if(!resourceJSON.meshes) throw Error ("JSON Formatierung nicht untersützt, bitte assimp2json benutzen.") 
+        this.name = resourceJSON.rootnode.name;
+        this._generateBufferData(resourceJSON)
+        this._generatePointsAndTriangles();
+        this._setupCollisionHirarchie();
     }
 
-    /**
-     * GL
-     */
-    initGl(gl){
-        this._colorsBackup = this._colors; // Zwischenspeicher für Towel damit nach colorMode wieder gewechselt werden kann
-        this._positionBuffer = gl.createBuffer();
-        this._indicesBuffer = gl.createBuffer();
-        this._colorBuffer = gl.createBuffer();
-        this._normalBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-    }
-    draw(gl){
-        // Direkte Zuweisung der Programme über dat.GUI klappt irgendwie nicht. Basic Programm ist wird dann irgendwie nur als String wiedergegeben
-        // Außerdem muss mindestens ein Objekt mit basicProgram gezeichnet worden sein, wahrscheinlich damit Buffer gefüllt sind?
-        // Versteh da Problem nicht aber workaround mit Dummyobjekt klappt. Zwar nervig aber nicht weiter schlimm
-        if(this.programName == "light") gl.useProgram(lightProgram);
-        else if(this.programName == "basic") gl.useProgram(basicProgram)
-        else gl.useProgram(this.program)
-
-        gl.uniformMatrix4fv(this.program.projMatrixUniform, false, projectionMatrix);
-        gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, modelviewMatrix);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer); 
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW); // update positions   
-        gl.vertexAttribPointer(this.program.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(this.program.vertexNormalAttribute, 3, gl.FLOAT, gl.TRUE, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._colors), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(this.program.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), gl.STATIC_DRAW);
-        gl.drawElements(this.drawMode, this._indices.length, gl.UNSIGNED_SHORT, 0);
-    }
-
-    setColor(color){
-        if(color instanceof Array) color = color;
-        else if(color == 'red') color = [1, 0, 0, 1]
-        else if(color == 'green') color = [0, 1, 0, 1]
-        else if(color == 'blue') color = [0, 0, 1, 1]
-        else if(color == 'yellow') color = [1, 1, 0, 1]
-        else if(color == 'cyan') color = [0, 1, 1, 1]
-        else if(color == 'magenta') color = [1, 0, 1, 1]
-        else throw new Error('Color ' + color + ' not valid')
+    _generateBufferData(model){
+        this._vertices = []; 
+        this._normals = []; 
+        this._indices = [];
+        let indices, indicesOffset = 0;
+        for(let mesh of model.meshes){
+            this._vertices = this._vertices.concat(mesh.vertices);
+            this._normals = this._normals.concat(mesh.normals);
+            indices = [].concat.apply([], mesh.faces);
+            this._indices = this._indices.concat(indices.map(f => f+indicesOffset));
+            indicesOffset += mesh.vertices.length/3;
+        }
         this._colors = [];
-        for(let i=0; i<this._vertices.length/3; i++){
-            this._colors.push(color[0], color[1], color[2], color[3]);
+        for(let i=0; i < this._vertices.length/3; i++){
+            this._colors.push(.5, .6, .5, 1)
+        }      
+    }
+    _generatePointsAndTriangles(){
+        this.points = generateVec3sFromContinousArray(this._vertices)
+        this.triangles = [];
+        for(let i=0; i < this._indices.length; i+=3){
+            this.triangles.push(new Triangle(
+                this.points[this._indices[i]], 
+                this.points[this._indices[i+1]], 
+                this.points[this._indices[i+2]]
+            ))
         }
-        this._colorsBackup = this._colors; 
-        return this;
+    }
+    _setupCollisionHirarchie(){
+        // Erstellt mindestens eine AABB
+        // TODO Maximale Tiefe anpassen
+        this.aabb = new AABB(null, this.triangles, Math.floor(this.points.length/200))
     }
 
     /**
-     * Animator für die Textilsimulaion existiert nur in Towel und überschreibt erweitert mesh.update()
-     * @param {Function} callack 
+     * Erweitern von Methoden
+     * funciton.apply übergibt das args Array in 'Parameterform'
+     * @param  {...any} args 
      */
-    applyUpdateCallback(callack){
-        this.animator = callack;
-        return this;
+    translate(...args){    
+        let temp = super.translate.apply(this, args);
+        this._setupCollisionHirarchie()
+        return temp;
     }
-    update(){
-        if(this.animator) this.animator();
+    rotate(...args){    
+        let temp = super.rotate.apply(this, args);
+        this._setupCollisionHirarchie()
+        return temp;
     }
 
     /**
-     * Update Buffer Vertices mit neuen Partikelpositionen
+     * Prüft wie viele Schnittpunkte ein Strahl aus Partikel+Geschw.vektor mit den Teilobjekte (Dreiecke) dieses Objektes besitzt
+     * Insofern Objekt geschlossen ist (Planare Objekte ohne 'Volumen' falle weg):
+     * @returns {true}  bei ungeraden Schnittpunkteanzahl
+     * @returns {false} bei gerader Schnittpunktanzahl
+     * (Nicht komplett auf Richtigkeit getestet)
      */
-    updateVerticesFromPoints() {
-        this._vertices = generateContinousArrayFromVec3s(this.points);
-    }
-    updateNormals(normals) {
-        this._normals = generateContinousArrayFromVec3s(normals);
-    }
+    isPointInside(p){
+        let intersections = [];
+        let dir = Vec3.sub(p, p.old).normalize();
+        for (let tri of this.triangles) {
+            let t = tri.getRayTriangleIntersection(p, dir);
+            if(t != null && t > 0) intersections.push(new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z))
+        }  
+        return this.triangles.length>1 && intersections.length % 2 == 1;
+    } 
 
-    /**
-     * Neuberechnung der Buffer Normalen der Vertices, falls die Dreiecke verändert wurden. 
-     * https://stackoverflow.com/a/6661242/7764088
-     */
-    updateNormalsFromTriangles(){
-        this._normals = [];
-        for(let p of this.points){
-            let normale = new Vec3();
-            for(let tri of this.triangles){
-                if(tri.hasPoint(p)) normale.add(tri.n)
+    resolvePartikelCollision(points){
+        let triangles = this.triangles
+        for(let p of points){
+            triangles = this.aabb.getTestedTriangles(p);
+            if(triangles == null) continue
+            for (let t of triangles) {
+                t.resolvePartikelCollision(p)
             }
-            normale.normalize();
-            this._normals.push(normale.x, normale.y, normale.z)
         }
-    }
-
-    /**
-     * Normalen der Dreiecke updaten 
-     * Nur für dynamische Objekte wie Cloth
-     */
-    recalculateTriangleNormals(){
-        for(let tri of this.triangles){
-            tri.recalculateNormal()
-        }
-    }
-
-    /**
-     * Transformationen 
-     * Dabei werden die Punkte, alten Punkte (von Partikel) und Normalen beachtet
-     */
-    translate(x, y, z){
-        let temp = new Vec3(x, y, z)
-        this.points.forEach(pos => {
-            pos.add(temp)
-            if(pos.old) pos.old.add(temp)
-        });
-        this.updateVerticesFromPoints();
-        return this; 
-    }
-
-    rotateX(degrees){
-        let rad = degToRad(degrees)
-        let matrix = mat3.create([1, 0, 0,   0, Math.cos(rad), -Math.sin(rad),   0, Math.sin(rad), Math.cos(rad) ])
-        return this.rotate(matrix);
-    }
-    rotateY(degrees){
-        let rad = degToRad(degrees)
-        let matrix = mat3.create([Math.cos(rad), 0, Math.sin(rad),   0, 1, 0,   -Math.sin(rad), 0, Math.cos(rad)])
-        return this.rotate(matrix);
-    }
-    rotateZ(degrees){
-        let rad = degToRad(degrees)
-        let matrix = mat3.create([Math.cos(rad), -Math.sin(rad), 0,   Math.sin(rad), Math.cos(rad), 0,   0, 0, 1])
-        return this.rotate(matrix);
-    }
-    rotate(matrix){
-        let normals = generateVec3sFromContinousArray(this._normals);
-        for(let i=0; i<this.points.length; i++){
-            let p = this.points[i];
-            p.multiplyMat3(matrix);
-            if(p instanceof Particle) p.old.multiplyMat3(matrix);
-            normals[i].multiplyMat3(matrix).normalize();
-        }
-        this.updateVerticesFromPoints();
-        this.updateNormals(normals);
-        this.recalculateTriangleNormals();
-        return this;
     }
 }
+
+
+

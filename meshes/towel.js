@@ -1,4 +1,4 @@
-class Towel extends Mesh {
+class Towel extends MeshObject {
     constructor(amountX = 10, amountY = 10, density = 1) {
         super(lightProgram, gl.TRIANGLES)
         this.amountX = amountX;
@@ -81,13 +81,13 @@ class Towel extends Mesh {
 
     /**
      * Textil Animator
+     * Erst aufrufen, nachdem alle initialen Transformationen ausgeführt sind, da ein Bakup vom jetzigen Standpunkt gespeichert wird
      * @param {Cloth} cloth
      * @param {Array} pinArr Indices der Partikel die nach der Initierung des Cloth gepinned werden
      */
     applyCloth(cloth, pinArr){
-        cloth.applyMesh(this);
+        cloth.applyMesh(this, pinArr);
         this.cloth = cloth;
-        if(pinArr) cloth.pin(pinArr)
         return this;
     }
     update(){
@@ -95,6 +95,7 @@ class Towel extends Mesh {
         this._changeIndicesFromDrawMode();
         super.update();
     }
+    
 
     /**
      * TODO Hier self collision 

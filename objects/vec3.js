@@ -12,12 +12,24 @@ class Vec3{
     getLength(){
         return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z)
     }
-    set(vec){
-        this.x = vec.x;
-        this.y = vec.y;
-        this.z = vec.z;
+    set(vec_x, y, z){
+        // Wenn über Stringify geklont ists kein Klassenobjekt mehr, daher gucken obs normales Objekt mit xyz ist
+        if(vec_x instanceof Vec3 || vec_x.x != null){
+            this.x = vec_x.x;
+            this.y = vec_x.y;
+            this.z = vec_x.z;
+        }
+        else {
+            this.x = vec_x;
+            this.y = y;
+            this.z = z;
+        }
         return this;
     }
+    isOrigin(){
+        return this.x == 0 && this.y == 0 && this.z && 0;
+    }
+
     normalize(){
         let l = this.getLength();
         this.x /= l;

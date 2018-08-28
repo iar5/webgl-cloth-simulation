@@ -1,6 +1,6 @@
 var sphereInstances=0;
 
-class Sphere extends Mesh{
+class Sphere extends MeshObject{
     constructor(radius=1, numLatitudes=12, numLongitudes=12) {
         super(lightProgram, gl.TRIANGLES)
         this.radius = radius;
@@ -8,9 +8,11 @@ class Sphere extends Mesh{
         this.numLongitudes = numLongitudes;
         this.midPoint = new Vec3(0, 0, 0);
         this.EPSILON = 0.02;
-
+    }
+    _initGl(){
         this._generateBufferData();
         this._setupGui();
+        super._initGl();
     }
     _generateBufferData() {
         this._vertices = []; 
@@ -65,7 +67,7 @@ class Sphere extends Mesh{
 
     translate(x, y, z){
         this.midPoint.add(new Vec3(x,y,z))
-        this.guiFolder.updateDisplay()
+        if(this.guiFolder) this.guiFolder.updateDisplay()
         return this
     }
 
@@ -74,7 +76,6 @@ class Sphere extends Mesh{
      * @param {*} points 
      */
     resolvePointCollision(points){
-        if(this.radius == 0) return;
         let midPoint = this.midPoint
         for(let p of points){
             if(Vec3.dist(p, midPoint) < this.radius+this.EPSILON) {

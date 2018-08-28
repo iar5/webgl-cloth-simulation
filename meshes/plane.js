@@ -1,8 +1,8 @@
-class Plane extends Mesh{
-    constructor(width, depth) {
+class Plane extends MeshObject{
+    constructor(width=1, depth=1) {
         super(lightProgram, gl.TRIANGLES)
-        this.width = width | 1;
-        this.depth = depth | 1;
+        this.width = width;
+        this.depth = depth;
         this.midPoint = new Vec3(0, 0, 0);
 
         this._generateBufferData();
@@ -44,6 +44,7 @@ class Plane extends Mesh{
      * @param {*} points 
      */
     resolvePartikelCollision(points){
+        if(this.width == 0 && this.depth == 0) return
         let midPoint=this.midPoint, width=this.width, depth=this.depth;
         for(let p of points){
             if( -width/2+midPoint.x < p.x && p.x < width/2+midPoint.x 

@@ -8,11 +8,12 @@ class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
-        this.EPSILON = 0.000001
+        this.EPSILON = 0.0000001 // Rechnabweichung Winkel
+        this.OFFSET = 0.02 // Abstand auf welchen 
         this.recalculateNormal();
     }
 
-    hasPoint(p){
+    hasCornerPoint(p){
         return p == this.a || p == this.b || p == this.c;
     }
 
@@ -158,6 +159,6 @@ class Triangle {
         if(t == null) return;
         let ip = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
-        p.set(Vec3.add(ip, Vec3.scale(this.n, this.EPSILON)))
+        p.set(Vec3.add(ip, Vec3.scale(this.n, this.OFFSET)))
     }  
 }

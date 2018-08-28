@@ -18,6 +18,7 @@ var defaultIterations = 10;
 
 
 
+
 /**
  * Simuliert das Verhalten von Textil über ein Partikelnetz.
  * Damit eine Änderungen über einen Zeitschritt geschieht, muss updateMesh() aufgerufen werden
@@ -42,19 +43,30 @@ class Cloth{
     }
     
     /**
-     * Speichert Referenz ab, 
+     * "Zweiter Konstruktor" bzw. Initiator
      * Ersetzt die Punkte mit Partikel, initiert Federn
      * Initierung der Drieecke hier weil Referenzen von Punkten/Partikeln gespeichert werden und diese ja grad überschrieben wurden
-     * @param {Mesh} mesh 
+     * @param {MeshObject} mesh 
      */
-    applyMesh(mesh){
+    applyMesh(mesh, pinArr){
         if(mesh instanceof Towel){
             this.mesh = mesh;
+            this._pointsBakup = JSON.parse(JSON.stringify(mesh.points))
             this._setupSpringMass()
             this._setupGui();
+            if(pinArr) this.pin(pinArr)
         }
-        else throw Error("Mesh not suitable for cloth simulation");
+        else throw Error("MeshObject not suitable for cloth simulation");
     }
+
+    /**
+     * Array mit Indices der Partikel, die von Kräften unbeachtetn sein sollen
+     * @param {Array} pointIndices 
+     */
+    pin(pointIndices){
+        for(let indice of pointIndices) this.mesh.points[indice].pin();
+    }
+    
     _setupSpringMass(){
         let towel=this.mesh;
         let amountY=towel.amountY, amountX=towel.amountX
@@ -110,6 +122,7 @@ class Cloth{
             }
         }
     }
+    
     _setupGui(){
         let guiFolder = window.gui.addFolder('cloth'+clothIstances++);
         let springFolder = guiFolder.addFolder('spring strengths');
@@ -122,70 +135,44 @@ class Cloth{
         guiFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
         guiFolder.add(this.mesh, 'programName', ["light", "basic"]);
         guiFolder.add(this, 'elongationMap');
+        guiFolder.add({resetPosition: () => {
+            let points = this.mesh.points;
+            let pointsBak = this._pointsBakup
+            for(let i=0; i<points.length; i++){
+                points[i].set(pointsBak[i]);
+                points[i].old.set(pointsBak[i]);
+
+            }
+        }}, 'resetPosition');
         guiFolder.open()
     }
-    
-    /**
-     * Array mit Indices der Partikel, die von Kräften unbeachtetn sein sollen
-     * @param {Array} pointIndices 
-     */
-    pin(pointIndices){
-        for(let indice of pointIndices) this.mesh.points[indice].pin();
-    }
-    
+
+
+
     /** 
-     * Simulation loop
+     * Simulation loop, muss vom Mesh aufgerufen werden
      */
     updateMesh(){
         this._applyExternalForces();
-        this._satisfyConstraints();
+        this._applyInternalForces();
         this.mesh.recalculateTriangleNormals();
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
-        
         if(this.elongationMap) this.mesh._colors = this._getColorsFromElongation();
         else this.mesh._colors = this.mesh._colorsBackup;
     }
-
-    _getColorsFromElongation(){
-        let colors = [];
-        for(let p of this.mesh.points){
-            let elongationCount = 0;
-            let strengthCount = 0;
-            for(let s of this.springs){
-                if(!(s.p0 == p || s.p1 == p)) continue;
-                let strength = this.springStrengths[s.type];
-                let elongation = s.getActualElongation(strength);
-                elongationCount += elongation;
-                strengthCount += strength;
-            }
-  
-            const val = elongationCount/strengthCount;
-            const stiff = this.stiffness;
-
-            let rgb = new Vec3(
-                clamp(val/stiff), // wird 0 wenn val negativ ist
-                stiff,
-                clamp(val/-stiff)
-            ).normalize();
-
-            colors.push(rgb.x, rgb.y, rgb.z, 1)
-        }
-        return colors;
-    }
-
+    
     _applyExternalForces() {
         for (let i=0; i < this.mesh.points.length; i++) {
             let p = this.mesh.points[i];
 
-            let v = Vec3.sub(p, p.old)
+            let v = Vec3.sub(p, p.old);
             let a = new Vec3(windX, -gravity, windZ).scale(1/60/60).scale(p.mass);
             p.old.set(p);
             p.add((v.add(a).scale(drag)));
         }
     }
-
-    _satisfyConstraints() {
+    _applyInternalForces() {
         let satisfied = false;
         let i = 1;
         let strength;
@@ -236,4 +223,30 @@ class Cloth{
             else o.resolvePartikelCollision(this.mesh.points);  
         }  
     } 
+    _getColorsFromElongation(){
+        let colors = [];
+        for(let p of this.mesh.points){
+            let elongationCount = 0;
+            let strengthCount = 0;
+            for(let s of this.springs){
+                if(!(s.p0 == p || s.p1 == p)) continue;
+                let strength = this.springStrengths[s.type];
+                let elongation = s.getActualElongation(strength);
+                elongationCount += elongation;
+                strengthCount += strength;
+            }
+  
+            const val = elongationCount/strengthCount;
+            const stiff = this.stiffness;
+
+            let rgb = new Vec3(
+                val/stiff, // wird 0 wenn val negativ ist
+                stiff,
+                val/-stiff
+            ).normalize();
+
+            colors.push(rgb.x, rgb.y, rgb.z, 1)
+        }
+        return colors;
+    }
 }
