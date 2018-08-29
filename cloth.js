@@ -154,7 +154,7 @@ class Cloth{
      */
     updateMesh(){
         this._applyExternalForces();
-        this._applyInternalForces();
+        this._applyInternalForcesAndCollision();
         this.mesh.recalculateTriangleNormals();
         this.mesh.updateNormalsFromTriangles();
         this.mesh.updateVerticesFromPoints();
@@ -172,7 +172,7 @@ class Cloth{
             p.add((v.add(a).scale(drag)));
         }
     }
-    _applyInternalForces() {
+    _applyInternalForcesAndCollision() {
         let satisfied = false;
         let i = 1;
         let strength;
@@ -199,8 +199,7 @@ class Cloth{
             }
         }
         this.__collisionConstraint();    
-
-        if(this.iterationMode != 'fullIteration') {
+        if(this.iterationMode == 'collectivStiffness' || this.iterationMode == 'singleStiffness') {
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
             else console.warn("Stiffness not satisfied! Increase (maximum) iterations if this message appears too often.")
         }
@@ -244,7 +243,6 @@ class Cloth{
                 stiff,
                 val/-stiff
             ).normalize();
-
             colors.push(rgb.x, rgb.y, rgb.z, 1)
         }
         return colors;

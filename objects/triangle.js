@@ -159,6 +159,6 @@ class Triangle {
         if(t == null) return;
         let ip = new Vec3(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z)
 
-        p.set(Vec3.add(ip, Vec3.scale(this.n, this.OFFSET)))
+        p.set(Vec3.add(ip, dir.normalize().scale(-this.OFFSET)));
     }  
 }

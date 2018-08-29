@@ -63,7 +63,7 @@ function startApplication() {
 	let	sphere = new Sphere(1, 22, 22).translate(-2, 3, -1);
 	let cube = new Mesh(resc["geometries/cube.json"]).setColor([.9, .7, .5, 1]).translate(2, 3, -1.5);
 	let	icosa = new Mesh(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
-	let	pyramide = new Mesh(resc["geometries/pyramide.json"]).setColor([.3, .55, 1, .5]).translate(-.1, 0.5, 0);
+	let	pyramide = new Mesh(resc["geometries/pyramide.json"]).setColor([0, 1, .6, .6]).translate(0.0625, 0.5, 0.0625);
 	let triangle = new Mesh(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Mesh(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
 	let	sphereTriMesh = new Mesh(resc["geometries/sphere.json"]).translate(0, 2, 0);
@@ -74,12 +74,12 @@ function startApplication() {
 	
 	let cubeMid = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(0, 1, 0);
 	let sphereMid = new Sphere(1, 22, 22).translate(0, 1, 0);
-	let towel4pin = new Towel(24, 24, .25).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 23, 552, 575]);
+	//let towel4pin = new Towel(24, 24, .25).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 23, 552, 575]);
 	let towelFree = new Towel(48, 48, .125).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 
 	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
 
-	objects = [towelFree, pyramide]
+	objects = [towelFree, cube]
 	
 
 
