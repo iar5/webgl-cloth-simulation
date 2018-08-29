@@ -19,6 +19,8 @@ var defaultIterations = 10;
 
 
 
+
+
 /**
  * Simuliert das Verhalten von Textil über ein Partikelnetz.
  * Damit eine Änderungen über einen Zeitschritt geschieht, muss updateMesh() aufgerufen werden
@@ -68,15 +70,13 @@ class Cloth{
     }
     
     _setupSpringMass(){
-        let towel=this.mesh;
-        let amountY=towel.amountY, amountX=towel.amountX
-        let particelMass = this.mass
+        let amountY=this.mesh.amountY, amountX=this.mesh.amountX
 
-        let points = towel.points;
+        let points = this.mesh.points;
         for (let i=0; i < points.length; i++) {
-            points[i] = new Particle(points[i], particelMass)
+            points[i] = new Particle(points[i], this.mass)
         }
-        let triangles = towel.triangles = [];
+        let triangles = this.mesh.triangles = [];
         for (let y=0; y < amountY; y++) {
             for (let x = 0; x < amountX; x++) {
                 if (y + 1 == amountY) break;
@@ -151,6 +151,8 @@ class Cloth{
 
     /** 
      * Simulation loop, muss vom Mesh aufgerufen werden
+     * Berechnen der neuen Positionen 
+     * Mit anschließendem Update der Bufferdata
      */
     updateMesh(){
         this._applyExternalForces();
@@ -167,7 +169,7 @@ class Cloth{
             let p = this.mesh.points[i];
 
             let v = Vec3.sub(p, p.old);
-            let a = new Vec3(windX, -gravity, windZ).scale(1/60/60).scale(p.mass);
+            let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass).scale(1/60/60);
             p.old.set(p);
             p.add((v.add(a).scale(drag)));
         }
@@ -186,19 +188,21 @@ class Cloth{
                     satisfied = false;
                 }
                 else if(this.iterationMode == 'collectivStiffness'){
-                    s.disctanceConstraint(strength)
-                    if(Math.abs(s.getLastElongation(strength)) > this.stiffness) satisfied = false; 
+                    if(Math.abs(s.getElongation(strength)) > this.stiffness) {
+                        satisfied = false
+                    }
+                    s.disctanceConstraint(strength);
                 }   
                 else if(this.iterationMode == 'singleStiffness'){
-                    if(Math.abs(s.getActualElongation(strength)) > this.stiffness){
-                        s.disctanceConstraint(strength)
+                    if(Math.abs(s.getElongation(strength)) > this.stiffness) {
                         satisfied = false; 
+                        s.disctanceConstraint(strength);
                         //console.log("Overeloganted spring by "+ Math.round((elogation-this.stiffness)*100) + "%")
                     }
                 }
             }
+            this.__collisionConstraint();    
         }
-        this.__collisionConstraint();    
         if(this.iterationMode == 'collectivStiffness' || this.iterationMode == 'singleStiffness') {
             if(satisfied == true) console.log("Satisfied on iteration "+i+ "/"+this.iterations)
             else console.warn("Stiffness not satisfied! Increase (maximum) iterations if this message appears too often.")
@@ -230,7 +234,7 @@ class Cloth{
             for(let s of this.springs){
                 if(!(s.p0 == p || s.p1 == p)) continue;
                 let strength = this.springStrengths[s.type];
-                let elongation = s.getActualElongation(strength);
+                let elongation = s.getElongation(strength);
                 elongationCount += elongation;
                 strengthCount += strength;
             }

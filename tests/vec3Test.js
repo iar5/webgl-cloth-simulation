@@ -10,3 +10,10 @@
     let dot = Vec3.dot(v1, v2);
     console.assert(dot == 8)
 }
+{
+    let v1 = new Vec3(4.3, 5.1, -3.09)
+    let v2 = new Vec3(1.111, .872, -92.4)
+    let d1 =  Vec3.sub(v1, v2).getLength();
+    let d2 =  Vec3.dist(v1, v2);
+    console.assert(d1 == d2)
+}

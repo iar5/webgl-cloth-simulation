@@ -9,7 +9,7 @@ class Triangle {
         this.b = b;
         this.c = c;
         this.EPSILON = 0.0000001 // Rechnabweichung Winkel
-        this.OFFSET = 0.02 // Abstand auf welchen 
+        this.OFFSET = 0.01 // Abstand auf welchen 
         this.recalculateNormal();
     }
 

@@ -79,7 +79,7 @@ function startApplication() {
 
 	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
 
-	objects = [towelFree, cube]
+	objects = [towelFree, cubeMid]
 	
 
 

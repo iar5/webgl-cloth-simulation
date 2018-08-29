@@ -7,7 +7,7 @@ class Sphere extends MeshObject{
         this.numLatitudes = numLatitudes;
         this.numLongitudes = numLongitudes;
         this.midPoint = new Vec3(0, 0, 0);
-        this.EPSILON = 0.02;
+        this.EPSILON = 0.01;
     }
     _initGl(){
         this._generateBufferData();
