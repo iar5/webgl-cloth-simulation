@@ -55,10 +55,15 @@ class Towel extends MeshObject {
        this._lineIndices = [];
        for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
+                /* Strcutural */
                 if (y + 1 < this.amountY) this._lineIndices.push(y * this.amountX + x, (y+1)*this.amountX + x);
                 if (x + 1 < this.amountX) this._lineIndices.push(y * this.amountX + x, y * this.amountX + x + 1);
-                if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
+                /* Shear */
+                //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x + 1, y * this.amountX + x); // weglassen, damit Dratsellung mit Kollisionsdreiecken übereinstimmt
                 //if (x + 1 < this.amountX && y + 1 < this.amountY) this._lineIndices.push((y + 1) * this.amountX + x, y * this.amountX + x + 1);            
+                /* Bend */
+                //if(x+2 < this.amountX) this._lineIndices.push(y*this.amountX + x, y*this.amountX + x+2);
+                //if(y+2 < this.amountY) this._lineIndices.push(y*this.amountX + x, (y+2)*this.amountX + x);
             }
         }
     }

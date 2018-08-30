@@ -9,11 +9,11 @@ window.addEventListener('load', () => {
 var clothIstances = 0;
 
 var gravity = 9.81; 
-var windX = 0.00;
-var windZ = 0.00;
-var drag = 0.99; 
+var windX = 0.001;
+var windZ = 0.001;
+var drag = 0.98; 
 
-var defaultStiffness = 0.3;
+var defaultStiffness = 0.1;
 var defaultIterations = 10; 
 
 
@@ -39,7 +39,7 @@ class Cloth{
         this.springStrengths = {
             'structural' : 1,
             'shear' : 1,
-            'bend' : 0.5
+            'bend' : 1
         }
         this.elongationMap = false;
     }
@@ -55,6 +55,7 @@ class Cloth{
             this.mesh = mesh;
             this._pointsBakup = JSON.parse(JSON.stringify(mesh.points))
             this._setupSpringMass()
+            this._shuffleSprings()
             this._setupGui();
             if(pinArr) this.pin(pinArr)
         }
@@ -93,12 +94,12 @@ class Cloth{
                     let p0 = points[y*amountX + x],
                         p1 = points[y*amountX + x+1];
                     springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
-                    }
+                }
                 if (y+1 < amountY) {
                     let p0 = points[y*amountX + x],
                         p1 = points[(y+1)*amountX + x];
                     springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'structural'));
-                    }
+                }
                 /* shear springs */
                 if (x+1 < amountX && y+1 < amountY) {
                     let p0 = points[y*amountX + x],
@@ -113,13 +114,32 @@ class Cloth{
                     let p0 = points[y*amountX + x],
                         p1 = points[y*amountX + x+2];
                     springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
-                    }
+                }
                 if(y+2 < amountY) {
                     let p0 = points[y*amountX + x],
                         p1 = points[(y+2)*amountX + x];
                     springs.push(new Spring(p0, p1, Vec3.dist(p0, p1), 'bend'));
                 }
             }
+        }
+    }
+
+    /**
+     * Fisher–Yates Shuffle
+     * Damit die Abhängigkeit von der Reihenfolge der Federn unterdrückt wird
+     * Bilden sich jedoch Artefakte
+     */
+    _shuffleSprings(){
+        let m = this.springs.length, t, i;
+        // While there remain elements to shuffle…
+        while (m) {
+            // Pick a remaining element…
+            i = Math.floor(Math.random() * m--);
+    
+            // And swap it with the current element.
+            t = this.springs[m];
+            this.springs[m] = this.springs[i];
+            this.springs[i] = t;
         }
     }
     
@@ -167,11 +187,11 @@ class Cloth{
     _applyExternalForces() {
         for (let i=0; i < this.mesh.points.length; i++) {
             let p = this.mesh.points[i];
-
-            let v = Vec3.sub(p, p.old);
-            let a = new Vec3(windX, -gravity, windZ).scale(1/p.mass).scale(1/60/60);
+            if(p.pinned == true) continue;
+            let v = Vec3.sub(p, p.old).scale(drag);
+            let a = new Vec3(windX, -gravity, windZ).scale(1/60/60);
             p.old.set(p);
-            p.add((v.add(a).scale(drag)));
+            p.add(v.add(a));
         }
     }
     _applyInternalForcesAndCollision() {
@@ -210,7 +230,7 @@ class Cloth{
     }   
     __collisionConstraint() {
         // Bottom Collision    
-        let bounce = 0.3;  
+        /*let bounce = 0.3;  
         let friction = .3;
         for (let p of this.mesh.points) {
             if (p.y < 0) {
@@ -219,7 +239,7 @@ class Cloth{
                 p.old.y = -p.old.y * bounce;
                 p.old.z = p.z - (p.z-p.old.z) * friction;
             }
-        }
+        }*/
         // Object Collision
         for(let o of objects) {
             if (o instanceof Sphere) o.resolvePointCollision(this.mesh.points);

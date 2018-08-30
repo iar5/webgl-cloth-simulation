@@ -75,11 +75,12 @@ function startApplication() {
 	let cubeMid = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(0, 1, 0);
 	let sphereMid = new Sphere(1, 22, 22).translate(0, 1, 0);
 	//let towel4pin = new Towel(24, 24, .25).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 23, 552, 575]);
-	let towelFree = new Towel(48, 48, .125).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
+	let towel2pin = new Towel(36, 36, .125).translate(0, 0, 0).applyCloth(new Cloth(), [0, 35]);
+	//let towelFree = new Towel(36, 36, .1875).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 
 	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
 
-	objects = [towelFree, cubeMid]
+	objects = [towel2pin]
 	
 
 
