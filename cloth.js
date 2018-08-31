@@ -32,7 +32,7 @@ var defaultIterations = 10;
 class Cloth{
     constructor(stiffness=defaultStiffness, iterations=defaultIterations, iterationMode) {
         this.mesh = null;
-        this.mass = 1; // wegnehmen
+        this.mass = 1; // wegnehmen?
         this.iterations = iterations;
         this.stiffness = stiffness < 0 ? 0 : stiffness > 1 ? 2 : stiffness;
         this.iterationMode = iterationMode || "fullIteration"
@@ -55,7 +55,7 @@ class Cloth{
             this.mesh = mesh;
             this._pointsBakup = JSON.parse(JSON.stringify(mesh.points))
             this._setupSpringMass()
-            this._shuffleSprings()
+            //this._shuffleSprings()
             this._setupGui();
             if(pinArr) this.pin(pinArr)
         }
@@ -127,7 +127,7 @@ class Cloth{
     /**
      * Fisher–Yates Shuffle
      * Damit die Abhängigkeit von der Reihenfolge der Federn unterdrückt wird
-     * Bilden sich jedoch Artefakte
+     * Bilden sich jedoch Artefakte die mit zunehmender (z.b.) gravity schlimmer werden
      */
     _shuffleSprings(){
         let m = this.springs.length, t, i;
@@ -204,12 +204,12 @@ class Cloth{
             for (let s of this.springs) {
                 strength = this.springStrengths[s.type];
                 if(this.iterationMode == 'fullIteration'){
-                    s.disctanceConstraint(strength)
+                    s.disctanceConstraint(strength);
                     satisfied = false;
                 }
                 else if(this.iterationMode == 'collectivStiffness'){
                     if(Math.abs(s.getElongation(strength)) > this.stiffness) {
-                        satisfied = false
+                        satisfied = false;
                     }
                     s.disctanceConstraint(strength);
                 }   
@@ -230,7 +230,7 @@ class Cloth{
     }   
     __collisionConstraint() {
         // Bottom Collision    
-        /*let bounce = 0.3;  
+        let bounce = 0.3;  
         let friction = .3;
         for (let p of this.mesh.points) {
             if (p.y < 0) {
@@ -239,7 +239,7 @@ class Cloth{
                 p.old.y = -p.old.y * bounce;
                 p.old.z = p.z - (p.z-p.old.z) * friction;
             }
-        }*/
+        }
         // Object Collision
         for(let o of objects) {
             if (o instanceof Sphere) o.resolvePointCollision(this.mesh.points);

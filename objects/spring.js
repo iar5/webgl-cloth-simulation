@@ -26,17 +26,28 @@ class Spring{
     /**
      * Distanzbedingung
      * Korrigiert die Federn auf iher Ausgangslänge
-     * @param {Number} strength 
+     * Berechnen des Impulses = negativ überdehnte Strecke
+     * @param {Number} strength Stärke der auswirkung der Korrektur
      */
     disctanceConstraint(strength=1){
         if(strength == 0) return;
-        let d = Vec3.sub(this.p1, this.p0)
+        let d = Vec3.sub(this.p1, this.p0);
         let diff = d.getLength() - this.initialLength;
-        let impuls = Vec3.normalize(d).scale(strength * diff)
 
-        let m0 = 0.5;
-        let m1 = 0.5;
-        if(this.p0.pinned && this.p1.pinned){
+        /*
+        let elongation = 0.01; // Zugelassene prozentuale Ausdehnung, unterhalb der die Feder nicht zusammengezogen/gestreckt wird
+        let offset = elongation * this.initialLength;
+        if (diff > 0) {
+            if((diff -= offset) < 0) return
+        } else if((diff += offset) > 0) return
+        */
+
+        d.normalize().scale(strength * diff);
+
+        let m0, m1;
+        if(!this.p0.pinned && !this.p1.pinned){
+            m0 = .5, m1 = .5; 
+        } else if(this.p0.pinned && this.p1.pinned) { 
             m0 = 0, m1 = 0; 
         } else if(this.p0.pinned) { 
             m0 = 0, m1 = 1; 
@@ -44,7 +55,7 @@ class Spring{
             m0 = 1, m1 = 0; 
         } 
 
-        this.p0.add(Vec3.scale(impuls, m0))
-        this.p1.sub(Vec3.scale(impuls, m1)) 
+        this.p0.add(Vec3.scale(d, m0))
+        this.p1.sub(Vec3.scale(d, m1)) 
     }
 }

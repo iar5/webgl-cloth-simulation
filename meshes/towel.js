@@ -87,8 +87,8 @@ class Towel extends MeshObject {
     /**
      * Textil Animator
      * Erst aufrufen, nachdem alle initialen Transformationen ausgeführt sind, da ein Bakup vom jetzigen Standpunkt gespeichert wird
-     * @param {Cloth} cloth
-     * @param {Array} pinArr Indices der Partikel die nach der Initierung des Cloth gepinned werden
+     * @param {Cloth} cloth Textil
+     * @param {Array} pinArr Indices der Partikel die nach der Initierung des Textil fixiert werden
      */
     applyCloth(cloth, pinArr){
         cloth.applyMesh(this, pinArr);
