@@ -8,8 +8,8 @@ class Towel extends MeshObject {
         this._generatePointsAndTriangles();
         this._changeIndicesFromDrawMode();
         this.programName = "light" // Siehe Problembeschreibung in mesh.draw()
-
     }
+
     _generateBufferData() {
         /*
         * PUNKTE:
@@ -91,10 +91,16 @@ class Towel extends MeshObject {
      * @param {Array} pinArr Indices der Partikel die nach der Initierung des Textil fixiert werden
      */
     applyCloth(cloth, pinArr){
-        cloth.applyMesh(this, pinArr);
         this.cloth = cloth;
+        this.__pinArr = pinArr;
         return this;
     }
+
+    init(){
+        if(this.cloth) this.cloth.applyMesh(this, this.__pinArr);
+        super.init();
+    }
+
     update(){
         this.cloth.updateMesh();
         this._changeIndicesFromDrawMode();

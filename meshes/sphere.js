@@ -9,10 +9,10 @@ class Sphere extends MeshObject{
         this.midPoint = new Vec3(0, 0, 0);
         this.EPSILON = 0.01;
     }
-    _initGl(){
+    init(){
         this._generateBufferData();
         this._setupGui();
-        super._initGl();
+        super.init();
     }
     _generateBufferData() {
         this._vertices = []; 
@@ -48,7 +48,7 @@ class Sphere extends MeshObject{
         }
     }
     _setupGui() {
-        let guiFolder = this.guiFolder = window.gui.addFolder('sphere' + sphereInstances++);
+        let guiFolder = this.guiFolder = window.gui.addFolder('sphere_' + sphereInstances++);
         guiFolder.add(this, 'radius', 0, 5).step(0.01);
         guiFolder.add(this.midPoint, 'x', -7, 7).step(0.01);
         guiFolder.add(this.midPoint, 'y', -7, 7).step(0.01);

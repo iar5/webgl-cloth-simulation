@@ -10,7 +10,7 @@ class MeshObject{
         this.drawMode = drawMode;
     }
 
-    initGl(){
+    init(){
         this._colorsBackup = this._colors; // Zwischenspeicher für Towel damit nach colorMode wieder gewechselt werden kann
         this._positionBuffer = gl.createBuffer();
         this._indicesBuffer = gl.createBuffer();

@@ -1,7 +1,7 @@
 /*
- * Resource loading and application start
+ * Registrieren von externen Text Ressourcen, die vor dem Start der Anwendung geladen werden
  */
-var urls = [
+let urls = [
 	'shader/light.vs', 
 	'shader/light.fs', 
 	'shader/basic.vs', 
@@ -11,7 +11,8 @@ var urls = [
 	'geometries/icosa.json', 
 	'geometries/triangleBig.json',
 	'geometries/pyramide.json',
-	'geometries/sphere.json'
+	'geometries/sphere.json',
+	'geometries/baumstumpf.json'
 ]
 var resc = {};
 
@@ -32,7 +33,6 @@ urls.forEach(url => {
 var gl;
 var lightProgram;
 var basicProgram;
-var stats;
 var gui;
 
 var	lastTick = 0;
@@ -61,26 +61,32 @@ function startApplication() {
 	// ----------------- Scene Start ------------------ //
 
 	let	sphere = new Sphere(1, 22, 22).translate(-2, 3, -1);
+	let	sphereTriMesh = new Mesh(resc["geometries/sphere.json"]).translate(0, 2, 0);
 	let cube = new Mesh(resc["geometries/cube.json"]).setColor([.9, .7, .5, 1]).translate(2, 3, -1.5);
 	let	icosa = new Mesh(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
 	let	pyramide = new Mesh(resc["geometries/pyramide.json"]).setColor([0, 1, .6, .6]).translate(0.0625, 0.5, 0.0625);
 	let triangle = new Mesh(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Mesh(resc["geometries/human_806polys.json"]).translate(0, 0, -1);
-	let	sphereTriMesh = new Mesh(resc["geometries/sphere.json"]).translate(0, 2, 0);
 
-	//let towel = new Towel(24, 24, .25).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 23, 552]);
-	//let towel = new Towel(36, 36, .1875).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 35, 1260]);
-	//let towel = new Towel(48, 48, .125).rotateX(-90).translate(0, 6, 3).applyCloth(new Cloth(), [0, 47]);
-	
+
 	let cubeMid = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(0, 1, 0);
-	let sphereMid = new Sphere(1, 22, 22).translate(0, 1, 0);
-	//let towel4pin = new Towel(24, 24, .25).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 23, 552, 575]);
-	let towel2pin = new Towel(36, 36, .125).translate(0, 0, 0).applyCloth(new Cloth(), [0, 35]);
+	let sphereMid = new Sphere(1, 22, 22).translate(0, 2, 0);
+	let towel2pin = new Towel(36, 36, .125).applyCloth(new Cloth(), [0, 35]);
+
+	let towel3pin = new Towel(40, 40, .15).rotateX(-90).translate(0, 3, 3).applyCloth(new Cloth(), [0, 39, 1560]);
+	let towel4pin = new Towel(40, 40, .15).rotateX(-90).translate(0, 2.5, 3).applyCloth(new Cloth(), [0, 39, 1560, 1599]);
+
 	let towelFree = new Towel(48, 48, .125).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
+	let towelFree2 = new Towel(40, 40, .15).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
+	let towelFree3 = new Towel(30, 30, .2).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
+	let towelFree4 = new Towel(24, 24, .25).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 
-	//let towelGarn = new Towel(6, 1, 1).applyCloth(new Cloth(), [0, 5]).translate(0, 3, 0);
 
-	objects = [towelFree, cubeMid]
+	// Maßstab 1:5; Baumstumpf: Radius 0.25m(1.25), Höhe: 0.35m(1.75); Tuch: 1.6m(8) * 1.8m(9) 
+	let	baumstumpf = new Mesh(resc["geometries/baumstumpf.json"]).setColor([.5, .6, .5, .6]);
+	let towelEcht = new Towel(80, 90, .1).rotateX(-90).translate(0, 4, 4.5).applyCloth(new Cloth()).setColor([1, 0.2, 0.2, 1]);
+
+	objects = [towel2pin] 
 	
 
 
@@ -98,14 +104,19 @@ function startApplication() {
 		let loadingText = document.getElementById("loadingText");
 		loadingText.parentNode.removeChild(loadingText);
 		canvas.style.display = "initial";
-		stats = new Stats();
-		document.body.appendChild(stats.dom);
+		window.statsFPS = new Stats();
+		window.statsMS = new Stats();
+		document.body.appendChild(statsFPS.dom);
+		document.body.appendChild(statsMS.dom);
+		statsFPS.showPanel(0)
+		statsMS.showPanel(1)
+		statsMS.domElement.style.cssText = 'position:absolute;top:48px;';
 	}
 
 	let dummy = new Plane(0, 0);
 	dummy.program = basicProgram // siehe Problem in mesh.draw()
 	objects.unshift(dummy)
-	objects.forEach(o => o.initGl());
+	objects.forEach(o => o.init());
 	loop();
 
 	function loop() {
@@ -124,7 +135,8 @@ function startApplication() {
 			if(o.update) o.update();
 			o.draw()
 		});
-		stats.update();
+		statsFPS.update();
+		statsMS.update();
 		requestAnimationFrame(loop);
 	}
 

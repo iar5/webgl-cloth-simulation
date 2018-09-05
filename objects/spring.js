@@ -14,7 +14,7 @@ class Spring{
     }
     
     /**
-     * Ausdehnung der Feder unter Betrachtung der Stärke (oder eben nicht, wenn kein Parameter übergben)
+     * Prozentuale Ausdehnung der Feder unter Betrachtung der Stärke (oder eben nicht, wenn kein Parameter übergben)
      * Wobei 1 ^= 100%
      * @param {Number} strength  
      */
