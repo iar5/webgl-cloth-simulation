@@ -3,7 +3,7 @@ class AABB{
      * Axis Aligned Bounding Box
      * @param {AABB} parent (für später, nicht jedes mal erneut Baum von oben testen sondern von box aus dem letzten simulationsschritt hoch) 
      * @param {Array} triangles set welches AABB umfassen soll und dann auf Kinder aufgeteilt wird
-     * @param {Number} depth wie viele kinder AABBs soll es geben
+     * @param {Number} depth wie tief sollen kinder AABBs gehen. 0: keine kinder, nur wurzel
      */
     constructor(parent, triangles, depth){
         this.parent = parent;
@@ -83,7 +83,7 @@ class AABB{
     
 
     /**
-     * Ray-Box intersection ("MovingPoint-BoundginBox")
+     * Ray/Segment-Box intersection ("MovingPoint-BoundginBox")
      * Ericson S. 183
      * @param {*} p 
      */

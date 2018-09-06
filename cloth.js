@@ -12,7 +12,7 @@ var windZ = 0.001;
 var drag = 0.98; 
 
 var clothIstances = 0;
-
+var maxMaxIteration = 200
 
 
 
@@ -41,7 +41,7 @@ class Cloth{
     }
     
     /**
-     * "Zweiter Konstruktor" bzw. Initiator
+     * "Zweiter Konstruktor" 
      * Ersetzt die Punkte mit Partikel, initiert Federn
      * Initierung der Drieecke hier weil Referenzen von Punkten/Partikeln gespeichert werden und diese ja grad überschrieben wurden
      * @param {MeshObject} mesh 
@@ -49,13 +49,19 @@ class Cloth{
     applyMesh(mesh, pinArr){
         if(mesh instanceof Towel){
             this.mesh = mesh;
-            this._pointsBakup = JSON.parse(JSON.stringify(mesh.points))
             this._setupSpringMass()
             //this._shuffleSprings()
-            this._setupGui();
             if(pinArr) this.pin(pinArr)
         }
         else throw Error("MeshObject not suitable for cloth simulation");
+    }
+
+    /**
+     * Außerhalb von applyMesh, die damit Änderungen an den Punkten nach der Initiation auch ins Backup fließen
+     */
+    init(){
+        this._pointsBakup = JSON.parse(JSON.stringify(this.mesh.points))
+        this._setupGui();
     }
 
     /**
@@ -144,10 +150,10 @@ class Cloth{
         let name = "cloth_" + this._clothIstance;
         let guiFolder = window.gui.addFolder(name);
         let springFolder = guiFolder.addFolder('spring strengths');
-        springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.1);
-        springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.1);
-        springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.1);
-        guiFolder.add(this, 'maxIterations', 0, 200).step(1);
+        springFolder.add(this.springStrengths, 'structural', 0, 1).step(0.01);
+        springFolder.add(this.springStrengths, 'shear', 0, 1).step(0.01);
+        springFolder.add(this.springStrengths, 'bend', 0, 1).step(0.01);
+        guiFolder.add(this, 'maxIterations', 0, maxMaxIteration).step(1);
         guiFolder.add(this, 'maxStiffness', 0, 1);
         guiFolder.add(this, 'iterationMode', ["singleStiffness", "collectiveStiffness", "fullIteration"]);
         guiFolder.add(this.mesh, 'drawMode', {filled: gl.TRIANGLES, grid: gl.LINES, partikel: gl.POINTS});
@@ -228,7 +234,7 @@ class Cloth{
             }
             this.__collisionConstraint();    
         }
-        this.iterationPanel.update(i, this.maxIterations);
+        this.iterationPanel.update(i, maxMaxIteration);
     }   
     __collisionConstraint() {
         // Bottom Collision    
@@ -242,6 +248,7 @@ class Cloth{
                 p.old.z = p.z - (p.z-p.old.z) * friction;
             }
         }
+        
 
         // Object Collision
         for(let o of objects) {

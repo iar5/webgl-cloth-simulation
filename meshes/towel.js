@@ -22,7 +22,7 @@ class Towel extends MeshObject {
         for (let y = this.amountY; y > 0; y--) {
             for (let x = 0; x < this.amountX; x++) {
                 this._vertices.push(
-                    x * this.density - this.amountX * this.density / 2,
+                    x * this.density - (this.amountX-1) * this.density / 2,
                     y * this.density,
                     0,
                 );
@@ -52,6 +52,7 @@ class Towel extends MeshObject {
                 //this._triangleIndices.push((y+1)*this.amountX + x, (y+1)*this.amountX + x+1, y*this.amountX + x+1);
            }
        }
+
        this._lineIndices = [];
        for (let y = 0; y < this.amountY; y++) {
             for (let x = 0; x < this.amountX; x++) {
@@ -86,18 +87,21 @@ class Towel extends MeshObject {
 
     /**
      * Textil Animator
-     * Erst aufrufen, nachdem alle initialen Transformationen ausgeführt sind, da ein Bakup vom jetzigen Standpunkt gespeichert wird
      * @param {Cloth} cloth Textil
      * @param {Array} pinArr Indices der Partikel die nach der Initierung des Textil fixiert werden
      */
     applyCloth(cloth, pinArr){
         this.cloth = cloth;
-        this.__pinArr = pinArr;
+        this.cloth.applyMesh(this, pinArr);
         return this;
-    }
+    };
 
+    /**
+     * Erst aufrufen, nachdem alle initialen Transformationen ausgeführt sind, 
+     * da ein Bakup von diesem Standpunkt der points gespeichert wird
+     */
     init(){
-        if(this.cloth) this.cloth.applyMesh(this, this.__pinArr);
+        this.cloth.init();
         super.init();
     }
 
@@ -111,7 +115,7 @@ class Towel extends MeshObject {
     /**
      * TODO Hier self collision 
      * Wie gewohnt über die Dreiecke, vorher nur adjazente von ausschließen?
-     * @param {*} points 
+     * @param {Points} points 
      */
     resolvePartikelCollision(points){
         return;

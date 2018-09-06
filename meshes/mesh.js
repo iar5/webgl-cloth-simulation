@@ -47,8 +47,8 @@ class Mesh extends MeshObject {
     }
     _setupCollisionHirarchie(){
         // Erstellt mindestens eine AABB
-        // TODO Maximale Tiefe anpassen
-        this.aabb = new AABB(null, this.triangles, Math.floor(this.points.length/200))
+        // triangles.length/200 ist die effizienteste Tiefe für human806poly Modell
+        this.aabb = new AABB(null, this.triangles, Math.floor(this.triangles.length/200))
     }
 
     /**
