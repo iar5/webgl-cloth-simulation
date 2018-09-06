@@ -8,9 +8,9 @@ class Sphere extends MeshObject{
         this.numLongitudes = numLongitudes;
         this.midPoint = new Vec3(0, 0, 0);
         this.EPSILON = 0.01;
+        this._generateBufferData();
     }
     init(){
-        this._generateBufferData();
         this._setupGui();
         super.init();
     }
@@ -68,7 +68,7 @@ class Sphere extends MeshObject{
     translate(x, y, z){
         this.midPoint.add(new Vec3(x,y,z))
         if(this.guiFolder) this.guiFolder.updateDisplay()
-        return this
+        return this;
     }
 
     /**

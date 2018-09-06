@@ -1,5 +1,6 @@
 /**
  * Klasse zum Laden von .json Dreiecksnetz Objekten, die mit assimp2json generiert wurden
+ * assimp2json: https://github.com/acgessler/assimp2json.git
  * Anforderungen
  * - .obj bzw .json darf keine Doppelten Vertices haben
  * - Also Face Indices nicht in der Form: [0,1,2], [3,4,5], ..
@@ -45,9 +46,12 @@ class Mesh extends MeshObject {
             ))
         }
     }
+
+    /**
+     * Erstellt mindestens eine AABB um die äußersten Punkte
+     * triangles.length/200 ist die effizienteste Tiefe für human806poly Modell
+     */
     _setupCollisionHirarchie(){
-        // Erstellt mindestens eine AABB
-        // triangles.length/200 ist die effizienteste Tiefe für human806poly Modell
         this.aabb = new AABB(null, this.triangles, Math.floor(this.triangles.length/200))
     }
 

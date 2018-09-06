@@ -47,7 +47,7 @@ mat4.identity(rotationMatrix);
 
 var objects;
 const camera = {
-	 // wirkt als Transformation der gesamten Szene, also Werte umdrehen
+	 // wirkt als Transformation der Szene, Werte also umkehren
 	position: [0, -3, -14],
 	rotation: [0, 0, 0],
 	angle: 35,
@@ -63,30 +63,24 @@ function startApplication() {
 	let	sphereTriMesh = new Mesh(resc["geometries/sphere.json"]).translate(0, 2, 0);
 	let	icosa = new Mesh(resc["geometries/icosa.json"]).setColor([.55, .3, 1, 1]).translate(-.25, 3, 0.5);
 	let	pyramide = new Mesh(resc["geometries/pyramide.json"]).setColor([0, 1, .6, .6]).translate(0.0625, 0.5, 0.0625);
-	let triangle = new Mesh(resc["geometries/triangleBig.json"]).translate(-.5, 1, -1);
 	let	human = new Mesh(resc["geometries/human_806polys.json"]).translate(0, 0, 0);
 	let	ellipsoid = new Mesh(resc["geometries/ellipsoid.json"]).setColor([.2, .2, .2, 1]).translate(0, 3, 0);
-	let cube = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(3, 1, 0);
-	let sphere = new Sphere(1, 22, 22).translate(-1, 2, 0);
+	let cube = new Mesh(resc["geometries/cube.json"]).setColor([.6, .6, .8, .6]).translate(2, 1, 0);
+	let sphere = new Sphere(1, 22, 22).translate(-2.5, 2, 0);
 
 	let towel4pin = new Towel(40, 40, .15).rotateX(-90).translate(3, 2.5, 3).applyCloth(new Cloth(), [0, 39, 1560, 1599]);
 	let towel3pin = new Towel(40, 40, .15).rotateX(-90).translate(0, 3, 3).applyCloth(new Cloth(), [0, 39, 1560]);
-	let towel2pin = new Towel(36, 36, .125).translate(-2, 0, 0).applyCloth(new Cloth(), [0, 35]).setColor([0.3, 0.5, .9, 1]);
+	let towel2pin = new Towel(36, 36, .125).rotateX(-90).translate(-2.5, 5, 3.5).applyCloth(new Cloth(15), [0, 35]).setColor([0.3, 0.5, .9, 1]);
 	towel2pin.points[0].x += 0.225
 	towel2pin.points[35].x -= 0.225
 
 	let towelFree = new Towel(48, 48, .125).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
-	let towelFree2 = new Towel(40, 40, .15).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
-	let towelFree3 = new Towel(30, 30, .2).rotateX(-90).translate(3, 5, 3).applyCloth(new Cloth());
+	let towelFree2 = new Towel(40, 40, .15).rotateX(-90).translate(3, 5, 3).applyCloth(new Cloth(5));
+	let towelFree3 = new Towel(30, 30, .2).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 	let towelFree4 = new Towel(24, 24, .25).rotateX(-90).translate(0, 5, 3).applyCloth(new Cloth());
 
-	let towel2pinMid = new Towel(30, 60, .2).rotateX(-90).translate(0, 5, 6).applyCloth(new Cloth(), [900, 929]);
-	let towelFreeJune = new Towel(60, 60, 5/60).rotateX(-90).translate(0, 4, 2.5).applyCloth(new Cloth()).setColor([.9, .4, .4, 1]);
-	let towelFreeStiff = new Towel(30, 60, 5/60).rotateX(-90).translate(0, 4, 2.5).applyCloth(new Cloth()).setColor([.9, .4, .4, 1]);
-	let towelFreeDecken = new Towel(30, 30, 3.75/30).rotateX(-90).translate(0, 4, 1.875).applyCloth(new Cloth()).setColor([.7, .8, 1, 1]);
-	let towelFreeVorleger = new Towel(10, 6, 0.5).rotateX(-90).translate(0, 4, 1.5).applyCloth(new Cloth()).setColor([.9, .4, .4, 1]);
 
-	objects = [sphere, towel2pin, towel4pin] 
+	objects = [sphere, towel2pin, towelFree2, cube] 
 	
 
 

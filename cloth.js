@@ -1,3 +1,7 @@
+/**
+ * Externe Kräfte
+ * Globale Variablen die alle Cloth Objekte beeinflussen
+ */
 window.addEventListener('load', () => {
     gui = new dat.GUI();
     var enviroment = gui.addFolder('enviroment');
@@ -26,7 +30,7 @@ var maxMaxIteration = 200
  * @param {Number} maxIterations Anzal der (maximalen) Iterationen über die Distanzbedingungen, Auswirkung abhängig vom iterationMode
  */
 class Cloth{
-    constructor(maxStiffness = 0.1, maxIterations = 10, iterationMode = "fullIteration") {
+    constructor(maxIterations = 10, maxStiffness = 0.1, iterationMode = "fullIteration") {
         this.mesh = null;
         this.mass = 1; 
         this.maxIterations = maxIterations;

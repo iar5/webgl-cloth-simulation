@@ -53,7 +53,9 @@ class MeshObject{
         else if(color == 'yellow') color = [1, 1, 0, 1]
         else if(color == 'cyan') color = [0, 1, 1, 1]
         else if(color == 'magenta') color = [1, 0, 1, 1]
+        else if(color == 'green') color = [0, 1, 0, 1]
         else throw new Error('Color ' + color + ' not valid')
+        
         this._colors = [];
         for(let i=0; i<this._vertices.length/3; i++){
             this._colors.push(color[0], color[1], color[2], color[3]);
