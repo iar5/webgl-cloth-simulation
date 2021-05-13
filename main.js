@@ -98,6 +98,8 @@ function startApplication() {
 		let loadingText = document.getElementById("loadingText");
 		loadingText.parentNode.removeChild(loadingText);
 		canvas.style.display = "initial";
+		canvas.width = window.innerWidth
+		canvas.height = window.innerHeight
 		window.statsFPS = new Stats();
 		window.statsMS = new Stats();
 		document.body.appendChild(statsFPS.dom);

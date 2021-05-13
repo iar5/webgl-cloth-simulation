@@ -19,6 +19,9 @@ var clothIstances = 0;
 var maxMaxIteration = 200
 
 
+const tempVec1 = new Vec3()
+const tempVec2 = new Vec3()
+
 
 
 /**
@@ -203,7 +206,7 @@ class Cloth{
             let p = this.mesh.points[i];
             if(p.pinned == true) continue;
             let v = Vec3.sub(p, p.old).scale(drag);
-            let a = new Vec3(windX, -gravity, windZ).scale(1/60/60);
+            let a = tempVec1.set(windX, -gravity, windZ).scale(1 / 60 / 60);
             p.old.set(p);
             p.add(v.add(a));
         }
@@ -280,7 +283,7 @@ class Cloth{
             const val = elongationCount/strengthCount;
             const stiff = this.maxStiffness;
 
-            let rgb = new Vec3(
+            let rgb = tempVec2.set(
                 val/stiff, // wird 0 wenn val negativ ist
                 stiff,
                 val/-stiff
